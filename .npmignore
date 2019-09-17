@@ -1,0 +1,8 @@
+docs
+src
+tests
+
+jsdoc.json
+rollup.config.js
+.babelrc
+.editorconfig
