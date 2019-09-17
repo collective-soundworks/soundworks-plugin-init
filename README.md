@@ -13,7 +13,7 @@
 npm install --save @soundworks/service-platform
 ```
 
-## Configuration
+## Usage
 
 ### client
 
