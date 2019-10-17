@@ -1,9 +1,7 @@
 import NoSleep from 'nosleep.js';
+import MobileDetect from 'mobile-detect';
 // default built-in definition
 import * as defaultDefinitions from './features-definitions';
-// utils
-import getPlatformInfos from './utils/platform-infos';
-
 
 const serviceFactory = function(Service) {
   /**
@@ -142,7 +140,6 @@ const serviceFactory = function(Service) {
      * @private
      */
     async start() {
-      super.start();
       // check that all required features are defined
       this._requiredFeatures.forEach(({ id, args }) => {
         if (!this._featureDefinitions[id]) {
@@ -154,8 +151,22 @@ const serviceFactory = function(Service) {
 
       this.started();
 
-      // check if all required features are available on the platform
-      const infos = getPlatformInfos();
+      const ua = window.navigator.userAgent;
+      const md = new MobileDetect(ua);
+      const mobile = (md.mobile() !== null);
+      const _os = md.os();
+      let os;
+
+      if (_os === 'AndroidOS') {
+        os = 'android';
+      } else if (_os === 'iOS') {
+        os = 'ios';
+      } else {
+        os = 'other';
+      }
+
+      const infos = { mobile, os };
+
       const available = await this._resolveFeatures('available');
       await this.state.set({ infos, available });
 
