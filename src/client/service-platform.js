@@ -3,6 +3,8 @@ import MobileDetect from 'mobile-detect';
 // default built-in definition
 import * as defaultDefinitions from './features-definitions';
 
+const definitions = {};
+
 const serviceFactory = function(Service) {
   /**
    * Interface for the client `'platform'` service.
@@ -60,14 +62,8 @@ const serviceFactory = function(Service) {
       };
 
       this._requiredFeatures = new Set();
-      this._featureDefinitions = {};
-
-      for (let name in defaultDefinitions) {
-        this.addFeatureDefinition(defaultDefinitions[name]);
-      }
 
       this.onUserGesture = this.onUserGesture.bind(this);
-
       this.options = this.configure(defaults, options);
     }
 
@@ -110,20 +106,6 @@ const serviceFactory = function(Service) {
     }
 
     /**
-     * Structure of the definition for the test of a feature.
-     *
-     * @param {module:soundworks/client.Platform~definition} obj - Definition of
-     *  the feature.
-     */
-    addFeatureDefinition(obj) {
-      this._featureDefinitions[obj.id] = obj;
-
-      if (obj.alias) {
-        this._featureDefinitions[obj.alias] = obj;
-      }
-    }
-
-    /**
      *  Algorithm:
      *  - check required features
      *  - if (false)
@@ -142,7 +124,7 @@ const serviceFactory = function(Service) {
     async start() {
       // check that all required features are defined
       this._requiredFeatures.forEach(({ id, args }) => {
-        if (!this._featureDefinitions[id]) {
+        if (!definitions[id]) {
           throw new Error(`[${this.name}] Undefined required feature: "${id}"`)
         }
       });
@@ -196,6 +178,10 @@ const serviceFactory = function(Service) {
     async onUserGesture(event) {
       // cf. https://stackoverflow.com/questions/46746288/mousedown-and-mouseup-triggered-on-touch-devices
       event.preventDefault();
+
+      // we need some feedback to show that the user gesture
+      // has been taken into account
+      await this.state.set({ initializing: true });
 
 
       /** -------------------------------------------------------------
@@ -263,9 +249,9 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       let result = true;
 
       for (const { id, args } of this._requiredFeatures) {
-        if (this._featureDefinitions[id][step]) {
+        if (definitions[id][step]) {
           const state = this.state.getValues();
-          const featureResult = await this._featureDefinitions[id][step](state, ...args);
+          const featureResult = await definitions[id][step](state, ...args);
 
           details[id] = featureResult;
           result = result && featureResult;
@@ -278,6 +264,32 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     }
   }
 }
+
+/**
+ * Structure of the definition for the test of a feature.
+ *
+ * @param {String} id
+ * @param -  {Function : Promise.resolve(true|false)} [available=undefined]
+ * @param -  {Function : Promise.resolve(true|false)} [authorize=undefined]
+ * @param -  {Function : Promise.resolve(true|false)} [initialize=undefined]
+ * @param -  {Function : Promise.resolve(true|false)} [finalize=undefined]
+ *
+ * @param {module:soundworks/client.Platform~definition} obj - Definition of
+ *  the feature.
+ */
+serviceFactory.addFeatureDefinition = function(obj) {
+  definitions[obj.id] = obj;
+
+  if (obj.alias) {
+    definitions[obj.alias] = obj;
+  }
+}
+
+// add default definitions
+for (let name in defaultDefinitions) {
+  serviceFactory.addFeatureDefinition(defaultDefinitions[name]);
+}
+
 
 serviceFactory.defaultName = 'service-platform';
 

@@ -10,6 +10,11 @@ const schema = {
     default: null,
     nullable: true,
   },
+  initializing: {
+    type: 'any',
+    default: null,
+    nullable: true,
+  },
   initialized: {
     type: 'any',
     default: null,
@@ -43,10 +48,7 @@ const serviceFactory = function(Service) {
           const state =  await this.server.stateManager.attach(schemaName, clientId);
 
           this.states.set(clientId, state);
-
-          state.onDetach(() => {
-            this.states.delete(clientId);
-          });
+          state.onDetach(() => this.states.delete(clientId));
 
           // nothing special here...
           // this could be a good place to log some things about clients

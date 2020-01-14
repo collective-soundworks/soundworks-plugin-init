@@ -14,11 +14,11 @@ const cleanIosAudioContextDefinition = {
   // we are sure the audio contexte is resumed...
   finalize: function(state, audioContext) {
     if (state.infos.os === 'ios') {
-      // in ipod, when the problem occurs, sampleRate has been observed
-      // to be set at 16000Hz, as no exhaustive testing has been done
-      // assume < 40000 is a bad value.
+      // in iphones, sampleRate has been observed to be set at 16000Hz
+      // sometimes, causing clicks and noisy audio, as no exhaustive testing
+      // has been made assume < 40000 is a bad value.
       if (audioContext.sampleRate < 40000) {
-        window.location.reload(true); // this should be done application wise...
+        window.location.reload(true); // @note - this should be done application wise...
         Promise.resolve(false)
       }
     }
