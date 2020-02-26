@@ -17,6 +17,7 @@
     "clean": "rm -Rf client && rm -Rf server",
     "deploy": "np --yolo",
     "doc": "jsdoc -c jsdoc.json",
+    "prepublishOnly": "npm run transpile",
     "version": "npm run clean && npm run transpile && npm run doc && git add docs",
     "transpile:client": "babel src/client --out-dir client",
     "transpile:server": "babel src/server --out-dir server",

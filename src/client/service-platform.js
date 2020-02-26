@@ -177,18 +177,20 @@ const serviceFactory = function(Service) {
      */
     async onUserGesture(event) {
       // cf. https://stackoverflow.com/questions/46746288/mousedown-and-mouseup-triggered-on-touch-devices
-      event.preventDefault();
+      // event.preventDefault();
 
-      // we need some feedback to show that the user gesture
-      // has been taken into account
-      await this.state.set({ initializing: true });
-
+      // we need some feedback to show that the user gesture has been taken into account
+      //
+      // @note - we cannot `await` here, because `audioContext.resume` must be called
+      // directly into the user gesture, for some reason Safari do not understand that
+      // cf. https://stackoverflow.com/questions/57510426/cannot-resume-audiocontext-in-safari
+      this.state.set({ initializing: true });
 
       /** -------------------------------------------------------------
        * - No sleep
        *
        * @note - we dont care to have that on desktop (we don't actually want
-       * that, because of weird CPU usage on chrome),but it is hard to separate
+       * that, because of weird CPU usage on chrome), but it is hard to separate
        * an emulated mobile from real mobile, the only solution seems to be
        * through usage of `navigator.platform` but the list long
        * cf. https://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
@@ -198,13 +200,11 @@ const serviceFactory = function(Service) {
       const noSleepExcludePlatform = ['MacIntel'];
       const noSleepExcluded = noSleepExcludePlatform.indexOf(navigator.platform) !== -1
 
-      if (mode === 'touch' &&  !noSleepExcluded) {
+      if (mode === 'touch' && !noSleepExcluded) {
         const noSleep = new NoSleep();
         noSleep.enable();
       }
       /** ------------------------------------------------------------- */
-
-
 
       let mode;
 
@@ -223,6 +223,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       infos.interactionMode = mode;
 
       // execute interaction hooks from the platform
+      // @warning - no `await` should happen before that point
       const initialized = await this._resolveFeatures('initialize');
       await this.state.set({ infos, initialized });
 

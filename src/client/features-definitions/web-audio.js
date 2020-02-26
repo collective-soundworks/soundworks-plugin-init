@@ -15,17 +15,16 @@ const webAudioDefinition = {
     return Promise.resolve(!!audioContext);
   },
 
-  // authorize()
-
   initialize: async function(state, audioContext) {
     // @todo - put also in wawves-audio
+    // @note - maybe not needed anymore, as even Safari implements that
     if (!('resume' in audioContext)) {
       audioContext.resume = () => {
         return Promise.resolve();
       }
     }
 
-    await audioContext.resume();
+    const result = await audioContext.resume();
 
     if (!state.infos.mobile) {
       return Promise.resolve(true);
