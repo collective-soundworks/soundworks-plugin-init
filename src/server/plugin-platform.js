@@ -37,7 +37,6 @@ const pluginFactory = function(AbstractPlugin) {
       super(server, name);
 
       this.states = new Map();
-      console.log(`s:${this.name}`);
       this.server.stateManager.registerSchema(`s:${this.name}`, schema);
     }
 

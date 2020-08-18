@@ -145,7 +145,7 @@ import devicemotion from '@ircam/devicemotion';
 
 const client = new Client();
 // register device motion feature
-servicePlatformFactory.addFeatureDefinition({
+pluginPlatformFactory.addFeatureDefinition({
   id: 'devicemotion',
   initialize: async () => {
     const result = await devicemotion.requestPermission();
