@@ -32,8 +32,8 @@ const schema = {
   },
 };
 
-const serviceFactory = function(Service) {
-  return class Platform extends Service {
+const pluginFactory = function(AbstractPlugin) {
+  return class PluginPlatform extends AbstractPlugin {
     constructor(server, name, options) {
       super(server, name);
 
@@ -48,7 +48,6 @@ const serviceFactory = function(Service) {
 
           this.states.set(clientId, state);
           state.onDetach(() => this.states.delete(clientId));
-
           // this could be a good place to log things about clients
         }
       });
@@ -59,6 +58,4 @@ const serviceFactory = function(Service) {
   }
 }
 
-serviceFactory.defaultName = 'service-platform';
-
-export default serviceFactory;
+export default pluginFactory;

@@ -5,55 +5,8 @@ import * as defaultDefinitions from './features-definitions';
 
 const definitions = {};
 
-const serviceFactory = function(Service) {
-  /**
-   * Interface for the client `'platform'` service.
-   * @todo - review outdated
-   *
-   * The `platform` services is responsible for giving general informations
-   * about the user's device as well as checking availability and providing hooks
-   * in order to initialize the features required by the application (audio,
-   * microphone, etc.).
-   * If one of the required definitions is not available, a view is created with
-   * an error message and `client.compatible` is set to `false`.
-   *
-   * Available built-in definitions are:
-   * - 'web-audio': resume the given audioContext, also perform some additionnal
-   *  check on iOS devices (sampleRate and clock drift)
-   * - 'mobile-device': only-accept mobile devices in the application (based on
-   *   User-Agent sniffing)
-   * - 'full-screen': Android Only, this feature won't block the application if
-   *   not available.
-   *
-   *
-   * _<span class="warning">__WARNING__</span> This class should never be
-   * instanciated manually_
-   *
-   * @param {Object} options
-   * @param {Array<String>|String} options.features - Id(s) of the feature(s)
-   *  required by the application. Available build-in features are:
-   *  - 'web-audio'
-   *  - 'mobile-device': only accept mobile devices (recognition based User-Agent)
-   *  - 'audio-input': Android only
-   *  - 'full-screen': Android only
-   *  - 'geolocation': accept geolocalized devices. Populate the client with
-   *     current position
-   *  - 'wake-lock': this feature should be used with caution as
-   *     it has been observed to use 150% of cpu in chrome desktop.
-   * @param {Boolean} [options.showDialog=true] - If set to `false`, the service
-   *  execute all hooks without waiting for a user interaction and doesn't show
-   *  the service's view. This option should only be used on controlled
-   *  environnements where the target platform is known for working without
-   *  this need (e.g. is not iOS).
-   *
-   * @memberof module:soundworks/client
-   * @example
-   * // inside the experience constructor
-   * this.platform = this.require('platform', { features: 'web-audio' });
-   *
-   * @see {@link module:soundworks/client.client#platform}
-   */
-  return class Platform extends Service {
+const pluginFactory = function(AbstractPlugin) {
+  return class PluginPlatform extends AbstractPlugin {
     constructor(client, name, options) {
       super(client, name);
 
@@ -172,7 +125,7 @@ const serviceFactory = function(Service) {
      *
      * @example
      * myView.addEventListener((e) => {
-     *   platformService.onUserGesture(e);
+     *   platformPlugin.onUserGesture(e);
      * });
      */
     async onUserGesture(event) {
@@ -278,7 +231,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
  * @param {module:soundworks/client.Platform~definition} obj - Definition of
  *  the feature.
  */
-serviceFactory.addFeatureDefinition = function(obj) {
+pluginFactory.addFeatureDefinition = function(obj) {
   definitions[obj.id] = obj;
 
   if (obj.alias) {
@@ -288,10 +241,7 @@ serviceFactory.addFeatureDefinition = function(obj) {
 
 // add default definitions
 for (let name in defaultDefinitions) {
-  serviceFactory.addFeatureDefinition(defaultDefinitions[name]);
+  pluginFactory.addFeatureDefinition(defaultDefinitions[name]);
 }
 
-
-serviceFactory.defaultName = 'service-platform';
-
-export default serviceFactory;
+export default pluginFactory;

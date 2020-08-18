@@ -1,2 +1,2 @@
-import serviceFactory from './service-platform.js';
-export default serviceFactory;
+import pluginFactory from './plugin-platform.js';
+export default pluginFactory;
