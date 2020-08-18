@@ -118,12 +118,14 @@ If all the steps of every feature resolve on `true` the plugin is marked as `rea
 
 Each of these steps can be defined by a function that must return a Promise resolving on `true` if the lifecyle can continue or `false`. If the function is not provided, the lifecycle step is simply ignored:
 
- - @param {Object} def - Definition of the feature.
- - @param {String} def.id
- - @param {Function : Promise.resolve(true|false)} [def.available=undefined]
- - @param {Function : Promise.resolve(true|false)} [def.authorize=undefined]
- - @param {Function : Promise.resolve(true|false)} [def.initialize=undefined]
- - @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
+```
+- @param {Object} def - Definition of the feature.
+  + @param {String} def.id
+  + @param {Function : Promise.resolve(true|false)} [def.available=undefined]
+  + @param {Function : Promise.resolve(true|false)} [def.authorize=undefined]
+  + @param {Function : Promise.resolve(true|false)} [def.initialize=undefined]
+  + @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
+```
 
 ### Example
 
