@@ -17,7 +17,8 @@
   * [Client](#client)
     + [Registering the plugin](#registering-the-plugin-1)
     + [Requiring the plugin](#requiring-the-plugin-1)
-- [Adding a new Features](#adding-a-new-features)
+  * [Notes](#notes)
+- [Adding new features](#adding-new-features)
   * [Lifecycle](#lifecycle)
   * [Example - `@ircam/devicemotion`](#example---ircamdevicemotion)
 - [Credits](#credits)
@@ -36,12 +37,6 @@ npm install @soundworks/plugin-platform --save
 A working example can be found in the [example](https://github.com/collective-soundworks/soundworks-examples) repository.
 
 ## Usage
-
-By default, the plugin only have the logic dedicated at resuming a given `audioContext` built-in, however user-defined features can be added for specific uses-cases (devicemotion permission, etc.). See [Adding Features](Adding Features) for more informations. This `audio-context` definition also contains some logic to checks weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
-
-The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
-
-By default, the `soundworks-template` ships all the views to interact with the plugin.
 
 ### Server
 
@@ -103,7 +98,15 @@ class MyExperience extends Experience {
 }
 ```
 
-## Adding a new Features
+### Notes
+
+By default, the plugin only have the logic dedicated at resuming a given `audioContext` built-in, however user-defined features can be added for specific uses-cases (devicemotion permission, etc.). See [Adding Features](Adding Features) for more informations. This `audio-context` definition also contains some logic to checks weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
+
+The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
+
+By default, the `soundworks-template` ships all the views to interact with the plugin.
+
+## Adding new features
 
 ### Lifecycle
 
@@ -129,7 +132,7 @@ Each of these steps can be defined by a function that must return a Promise reso
 
 ### Example - `@ircam/devicemotion`
 
-For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing a consistent interface and behavior across browsers.
+For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing consistent interface and behavior across browsers.
 
 ```js
 // index.js
