@@ -1,20 +1,29 @@
-# `soundworks-plugin-template`
+# `@soundworks/plugin-platform`
 
 > `soundworks` plugin for checking availability and initializing the features required by the application and that may require a user gesture (e.g. for resuming a given audio context.
 
 > The plugin can also be used to simply add a splash screen to the application, by leaving the required features empty.
 
-## Example
+## Table of Contents
 
-A working example can be found in the [https://github.com/collective-soundworks/soundworks-examples](https://github.com/collective-soundworks/soundworks-examples).
+<!-- toc -->
 
-## Notes
+- [Installation](#installation)
+- [Example](#example)
+- [Usage](#usage)
+  * [Server](#server)
+    + [Registering the plugin](#registering-the-plugin)
+    + [Requiring the plugin](#requiring-the-plugin)
+  * [Client](#client)
+    + [Registering the plugin](#registering-the-plugin-1)
+    + [Requiring the plugin](#requiring-the-plugin-1)
+- [Adding a new Features](#adding-a-new-features)
+  * [Lifecycle](#lifecycle)
+  * [Example](#example-1)
+- [Credits](#credits)
+- [License](#license)
 
-By default, the plugin only have the logic dedicated at resuming a given `audioContext` built-in, however user-defined features can be added for specific uses-cases (devicemotion permission, etc.). See [Adding Features](Adding Features) for more informations. This `audio-context` definition also contains some logic to checks weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
-
-The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
-
-By default, the `soundworks-template` ships all the views to interact with the plugin.
+<!-- tocstop -->
 
 ## Installation
 
@@ -22,7 +31,17 @@ By default, the `soundworks-template` ships all the views to interact with the p
 npm install @soundworks/plugin-platform --save
 ```
 
+## Example
+
+A working example can be found in the [https://github.com/collective-soundworks/soundworks-examples](https://github.com/collective-soundworks/soundworks-examples) repository.
+
 ## Usage
+
+By default, the plugin only have the logic dedicated at resuming a given `audioContext` built-in, however user-defined features can be added for specific uses-cases (devicemotion permission, etc.). See [Adding Features](Adding Features) for more informations. This `audio-context` definition also contains some logic to checks weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
+
+The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
+
+By default, the `soundworks-template` ships all the views to interact with the plugin.
 
 ### Server
 
@@ -84,9 +103,9 @@ class MyExperience extends Experience {
 }
 ```
 
-### Adding a new Features
+## Adding a new Features
 
-#### Lifecycle
+### Lifecycle
 
 The initialization lifecycle of a feature follows these steps:
 
@@ -106,7 +125,7 @@ Each of these steps can be defined by a function that must return a Promise reso
  - @param {Function : Promise.resolve(true|false)} [def.initialize=undefined]
  - @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
 
-#### Example
+### Example
 
 For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing a consistent interface and behavior across browsers.
 
