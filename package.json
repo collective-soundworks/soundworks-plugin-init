@@ -11,7 +11,7 @@
     "clean": "rm -Rf client && rm -Rf server",
     "toc": "markdown-toc -i README.md",
     "prepublishOnly": "npm run build",
-    "build": "npm run clean && babel src --out-dir .",
+    "build": "npm run toc && npm run clean && babel src --out-dir .",
     "dev": "npm run build && chokidar src/ -c \"babel src --out-dir .\""
   },
   "publishConfig": {
@@ -21,14 +21,13 @@
     "type": "git",
     "url": "https://github.com/collective-soundworks/soundworks-plugin-platform"
   },
-  "dependencies": {
-    "markdown-toc": "^1.2.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.6.4",
     "@babel/core": "^7.6.4",
     "@babel/plugin-transform-modules-commonjs": "^7.4.4",
     "chokidar": "^3.2.2",
-    "chokidar-cli": "^2.0.0"
+    "chokidar-cli": "^2.0.0",
+    "markdown-toc": "^1.2.0"
   }
 }

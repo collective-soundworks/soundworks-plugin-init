@@ -19,7 +19,7 @@
     + [Requiring the plugin](#requiring-the-plugin-1)
 - [Adding a new Features](#adding-a-new-features)
   * [Lifecycle](#lifecycle)
-  * [Example](#example-1)
+  * [Example - `@ircam/devicemotion`](#example---ircamdevicemotion)
 - [Credits](#credits)
 - [License](#license)
 
@@ -127,7 +127,7 @@ Each of these steps can be defined by a function that must return a Promise reso
   + @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
 ```
 
-### Example
+### Example - `@ircam/devicemotion`
 
 For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing a consistent interface and behavior across browsers.
 
