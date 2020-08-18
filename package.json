@@ -21,7 +21,10 @@
     "type": "git",
     "url": "https://github.com/collective-soundworks/soundworks-plugin-platform"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mobile-detect": "^1.3.7",
+    "nosleep.js": "^0.9.0"
+  },
   "devDependencies": {
     "@babel/cli": "^7.6.4",
     "@babel/core": "^7.6.4",

@@ -76,6 +76,9 @@ import { Client } from '@soundworks/core/client';
 import pluginPlatformFactory from '@soundworks/plugin-platform/client';
 
 const client = new Client();
+const AudioContext = window.AudioContext ||window.webkitAudioContext;
+const audioContext = new AudioContext();
+
 client.pluginManager.register('platform', pluginPlatformFactory, {
   features: [
     ['web-audio', audioContext],
@@ -100,7 +103,7 @@ class MyExperience extends Experience {
 
 ### Notes
 
-By default, the plugin only have the logic dedicated at resuming a given `audioContext` built-in, however user-defined features can be added for specific uses-cases (devicemotion permission, etc.). See [Adding Features](Adding Features) for more informations. This `audio-context` definition also contains some logic to checks weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
+By default, the plugin only ships the logic dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [Adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
 
 The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
 
