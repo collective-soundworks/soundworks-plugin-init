@@ -2,7 +2,7 @@
 
 > [`soundworks`](https://github.com/collective-soundworks/soundworks) plugin for checking availability and initializing the features required by the application. The plugin provides an entry point for features that may require a user gesture (e.g. resuming an audio context).
 >
-> The plugin can simply be used to add a splash screen to the application.
+> The plugin can also simply be used to simply add a splash screen to the application.
 
 ## Table of Contents
 
