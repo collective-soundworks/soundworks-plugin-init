@@ -103,7 +103,7 @@ class MyExperience extends Experience {
 
 ### Notes
 
-By default, the plugin only ships the logic dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [Adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
+By default, the plugin only ships the logic dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
 
 The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
 
