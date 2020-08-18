@@ -76,7 +76,7 @@ import { Client } from '@soundworks/core/client';
 import pluginPlatformFactory from '@soundworks/plugin-platform/client';
 
 const client = new Client();
-const AudioContext = window.AudioContext ||window.webkitAudioContext;
+const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
 
 client.pluginManager.register('platform', pluginPlatformFactory, {
