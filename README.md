@@ -58,8 +58,8 @@ server.pluginManager.register('platform', pluginPlatformFactory, {}, []);
 import { AbstractExperience } from '@soundworks/core/server';
 
 class MyExperience extends AbstractExperience {
-  constructor() {
-    super();
+  constructor(server, clientType) {
+    super(server, clientType);
     // require plugin in the experience
     this.platform = this.require('platform');
   }
@@ -93,8 +93,8 @@ client.pluginManager.register('platform', pluginPlatformFactory, {
 import { Experience } from '@soundworks/core/client';
 
 class MyExperience extends Experience {
-  constructor() {
-    super();
+  constructor(client) {
+    super(client);
     // require plugin in the experience
     this.platform = this.require('platform');
   }
