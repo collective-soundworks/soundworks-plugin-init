@@ -1,8 +1,6 @@
 # `@soundworks/plugin-platform`
 
-> [`soundworks`](https://github.com/collective-soundworks/soundworks) plugin that checks availability and initialize features required by the application. It also provides an entry point for features that may require a user gesture (e.g. resuming an audio context).
->
-> The plugin can also be used to simply add a splash screen to the application.
+> [`soundworks`](https://github.com/collective-soundworks/soundworks) plugin that checks availability and initialize features required by the application. It also provides an entry point for features that may require a user gesture (e.g. clicking on the screen to resume an audio context). The plugin can also be used to simply add a splash screen to the application.
 
 ## Table of Contents
 
@@ -103,7 +101,7 @@ class MyExperience extends Experience {
 
 ### Notes
 
-By default, the plugin only ships the logic dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
+By default, the plugin only ships the feature dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
 
 The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
 

@@ -1,7 +1,6 @@
 # transpiled files
 /client
 /server
-/view
 
 # others
 /node_modules
