@@ -9,16 +9,15 @@
 - [Installation](#installation)
 - [Example](#example)
 - [Usage](#usage)
-  * [Server](#server)
+  * [Server installation](#server-installation)
     + [Registering the plugin](#registering-the-plugin)
     + [Requiring the plugin](#requiring-the-plugin)
-  * [Client](#client)
+  * [Client installation](#client-installation)
     + [Registering the plugin](#registering-the-plugin-1)
     + [Requiring the plugin](#requiring-the-plugin-1)
-  * [Notes](#notes)
-- [Adding new features](#adding-new-features)
-  * [Lifecycle](#lifecycle)
-  * [Example - `@ircam/devicemotion`](#example---ircamdevicemotion)
+  * [Adding new features](#adding-new-features)
+    + [Lifecycle](#lifecycle)
+    + [Example - `@ircam/devicemotion`](#example---ircamdevicemotion)
 - [Credits](#credits)
 - [License](#license)
 
@@ -36,7 +35,7 @@ A working example can be found in the [example](https://github.com/collective-so
 
 ## Usage
 
-### Server
+### Server installation
 
 #### Registering the plugin
 
@@ -64,7 +63,7 @@ class MyExperience extends AbstractExperience {
 }
 ```
 
-### Client
+### Client installation
 
 #### Registering the plugin
 
@@ -99,7 +98,7 @@ class MyExperience extends Experience {
 }
 ```
 
-### Notes
+### Adding new features
 
 By default, the plugin only ships the feature dedicated to resuming a given `audioContext`, however user-defined features can be added for specific uses-cases (devicemotion permission, etc., see the [adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
 
@@ -107,9 +106,7 @@ The plugin also tries to wakelock the device using the [nosleep.js](https://gith
 
 By default, the `soundworks-template` ships all the views to interact with the plugin.
 
-## Adding new features
-
-### Lifecycle
+#### Lifecycle
 
 The initialization lifecycle of a feature follows these steps:
 
@@ -131,7 +128,7 @@ Each of these steps can be defined by a function that must return a Promise reso
   + @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
 ```
 
-### Example - `@ircam/devicemotion`
+#### Example - `@ircam/devicemotion`
 
 For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing consistent interface and behavior across browsers.
 
