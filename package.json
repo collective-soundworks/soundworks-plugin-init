@@ -1,6 +1,6 @@
 {
   "name": "@soundworks/plugin-platform",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "soundworks plugin for simplifying initialization of clients",
   "authors": [
     "Benjamin Matuszewski"
