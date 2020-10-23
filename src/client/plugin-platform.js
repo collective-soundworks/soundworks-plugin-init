@@ -135,50 +135,55 @@ const pluginFactory = function(AbstractPlugin) {
       // we need some feedback to show that the user gesture has been taken into account
       //
       // @note - we cannot `await` here, because `audioContext.resume` must be called
-      // directly into the user gesture, for some reason Safari do not understand that
+      // directly into the user gesture, for some reason Safari does not understand that
       // cf. https://stackoverflow.com/questions/57510426/cannot-resume-audiocontext-in-safari
       this.state.set({ initializing: true });
 
-      /** -------------------------------------------------------------
-       * - No sleep
-       *
-       * @note - we dont care to have that on desktop (we don't actually want
-       * that, because of weird CPU usage on chrome), but it is hard to separate
-       * an emulated mobile from real mobile, the only solution seems to be
-       * through usage of `navigator.platform` but the list long
-       * cf. https://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
-       * ...so we only remove mac OSX for now... we will adapt later according
-       * to real world usage..
-       */
-      const noSleepExcludePlatform = ['MacIntel'];
-      const noSleepExcluded = noSleepExcludePlatform.indexOf(navigator.platform) !== -1
-
-      if (mode === 'touch' && !noSleepExcluded) {
-        const noSleep = new NoSleep();
-        noSleep.enable();
-      }
-      /** ------------------------------------------------------------- */
-
-      let mode;
-
-      if (event.type !== 'mouseup' && event.type !== 'touchend') {
+      // we need a user gesture:
+      // cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+      if (event.type !== 'click' && event.type !== 'mouseup' && event.type !== 'touchend') {
         throw new Error(`[[${this.name}] onUserGesture MUST be called on ""mouseup" or "touchend" events
 cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       }
 
-      if (event.type === 'mouseup') {
-        mode = 'mouse';
-      } else if (event.type === 'touchend') {
-        mode = 'touch';
-      }
+      //* -------------------------------------------------------------
+      // - The "No sleep" tail
+      //
+      // @note 1 (??/??/????)  - we dont care to have that on desktop (we don't
+      // actually want that, because of weird CPU usage on chrome), but it is hard
+      // to separate an emulated mobile from real mobile, the only solution seems
+      // to be through usage of `navigator.platform` but the list is long...
+      // cf. https://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
+      // ...so we only remove mac OSX for now... we will adapt later according
+      // to real world usage..
+      //
+      // const noSleepExcludePlatform = ['MacIntel'];
+      // const noSleepExcluded = noSleepExcludePlatform.indexOf(navigator.platform) !== -1
+      //
+      // if (mode === 'touch' && !noSleepExcluded) {
+      //   const noSleep = new NoSleep();
+      //   noSleep.enable();
+      // }
+      //
+      // @note 2 (23/10/2020) - this seems to be fixed w/ native WakeLock API
+      // (keep the code just in case...)
+      //
+      // @note 3 (23/10/2020) - Android still uses the video fallback
+      //
+      // @note 4 (23/10/2020) - arg... - https://github.com/richtr/NoSleep.js/issues/100
+      // Let's listen for a 'click' event in the @soundworks/template-helpers as
+      // a preventive action. We anyway never used the `info.interactionMode`
+      // so let's consider it is a problem of the application.
+      //
+      // -------------------------------------------------------------
 
-      const infos = this.state.get('infos');
-      infos.interactionMode = mode;
+      const noSleep = new NoSleep();
+      noSleep.enable();
 
       // execute interaction hooks from the platform
       // @warning - no `await` should happen before that point
       const initialized = await this._resolveFeatures('initialize');
-      await this.state.set({ infos, initialized });
+      await this.state.set({ initialized });
 
       if (initialized.result === false) {
         return this.error('initialization failed') ;
