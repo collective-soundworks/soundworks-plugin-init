@@ -102,7 +102,9 @@ const pluginFactory = function(AbstractPlugin) {
 
       const infos = { mobile, os };
 
-      const available = await this._resolveFeatures('available');
+      const availablePromises = this._executeFeatures('available');
+      const available = await this._resolveFeatures(availablePromises);
+      // console.log('available', available);
       await this.state.set({ infos, available });
 
       if (!available.result) {
@@ -110,7 +112,10 @@ const pluginFactory = function(AbstractPlugin) {
       }
 
       // ask for authorizations
-      const authorized = await this._resolveFeatures('authorize');
+      // @note - this could probably be removed, but needs to update template-helpers too
+      const authorizedPromises = this._executeFeatures('authorize');
+      const authorized = await this._resolveFeatures(authorizedPromises);
+      // console.log('authorized', authorized);
       await this.state.set({ authorized });
 
       if (!authorized.result) {
@@ -181,15 +186,25 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       noSleep.enable();
 
       // execute interaction hooks from the platform
-      // @warning - no `await` should happen before that point
-      const initialized = await this._resolveFeatures('initialize');
+
+      // note (24/09/2021) - Safari > 14 does not allow any async calls before
+      // accesing deviceMotion.requestPermission, so all initialize should be
+      // be called synchronously, and we must resolve the Promises after
+      // therefore `_resolveFeatures` is now a synchronous `_executeFeatures`
+      // and `_resolveFeatures` is called after.
+      const initializedPromises = this._executeFeatures('initialize');
+      const initialized = await this._resolveFeatures(initializedPromises);
+      // console.log('initialized', initialized);
       await this.state.set({ initialized });
 
       if (initialized.result === false) {
         return this.error('initialization failed') ;
       }
 
-      const finalized = await this._resolveFeatures('finalize');
+      // @warning - no `await` should happen before that point
+      const finalizedPromises = await this._executeFeatures('finalize');
+      const finalized = await this._resolveFeatures(finalizedPromises);
+      // console.log('finalized', finalized);
       await this.state.set({ finalized });
 
       if (finalized.result === false) {
@@ -203,23 +218,36 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     /**
      * steps: [available, authorize, initialize, finalize]
      */
-    async _resolveFeatures(step) {
-      const details = {};
-      let result = true;
+    _executeFeatures(step) {
+      const promises = {};
 
       for (const { id, args } of this._requiredFeatures) {
         if (definitions[id][step]) {
           const state = this.state.getValues();
-          const featureResult = await definitions[id][step](state, ...args);
+          const featureResultPromise = definitions[id][step](state, ...args);
 
-          details[id] = featureResult;
-          result = result && featureResult;
+          promises[id] = featureResultPromise;
         } else {
-          details[id] = true; // result cannot change in this case
+          promises[id] = Promise.resolve(true); // result cannot change in this case
         }
       };
 
-      return { details, result };
+      return promises;
+    }
+
+    async _resolveFeatures(promises) {
+      const result = {
+        details: {},
+        result: true,
+      };
+
+      for (let id in promises) {
+        const featureResult = await promises[id];
+        result.details[id] = featureResult;
+        result.result = result.result || featureResult;
+      }
+
+      return result;
     }
   }
 }
