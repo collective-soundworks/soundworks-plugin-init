@@ -1,6 +1,6 @@
 # `@soundworks/plugin-platform`
 
-> [`soundworks`](https://github.com/collective-soundworks/soundworks) plugin that checks availability and initialize features required by the application. It also provides an entry point for features that may require a user gesture (e.g. clicking on the screen to resume an audio context). The plugin can also be used to simply add a splash screen to the application.
+> [`soundworks`](https://github.com/collective-soundworks/soundworks) plugin that checks the availability of features required by the application, and their initialization. It also provides an entry point to the features that may require a user gesture (e.g. clicking on the screen to resume an audio context). The plugin can also be used to simply add a splash screen to the application.
 
 ## Table of Contents
 
@@ -102,7 +102,7 @@ class MyExperience extends Experience {
 
 By default, the plugin only ships the feature dedicated to resuming a given `audioContext`, however user-defined features can be added for specific use cases (devicemotion permission, etc., see the [adding new features](#adding-new-features) section for more informations). This `audio-context` definition also contains additional checks for weird quirks found in the wild (broken `sampleRate` on iOS, etc.).
 
-The plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
+This plugin also tries to wakelock the device using the [nosleep.js](https://github.com/richtr/NoSleep.js/) library.
 
 By default, the `soundworks-template` ships all the views to interact with the plugin.
 
@@ -115,9 +115,9 @@ The initialization lifecycle of a feature follows these steps:
 - The `available` and `authorize` steps are executed when the plugin starts.
 - The `initialize` and `finalize` steps are executed when calling the `onUserGesture(e)` method, that should be called on a `mouseup` or `touchend` event (cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes).
 
-If all the steps of every feature resolve on `true` the plugin is marked as `ready`, else it passes in an `errored` state and prevent the application to launch.
+If all the steps of every feature resolves to `true` the plugin is marked as `ready`, else it passes an `errored` state and prevents the application from launching.
 
-Each of these steps can be defined by a function that must return a Promise resolving on `true` if the lifecyle can continue or `false`. If the function is not provided, the lifecycle step is simply ignored:
+Each of these steps can be defined by a function that must return a `Promise` resolving on `true` if the lifecyle can continue or `false`. If the function is not provided, the lifecycle step is simply ignored:
 
 ```
 - @param {Object} def - Definition of the feature.
@@ -130,7 +130,7 @@ Each of these steps can be defined by a function that must return a Promise reso
 
 #### Example - `@ircam/devicemotion`
 
-For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing consistent interface and behavior across browsers.
+For example, requiring permission for motion sensors would lead to the following initialization of the plugin. The example uses the [@ircam/devicemotion](https://github.com/ircam-jstools/devicemotion) library, dedicated to providing a consistent interface and behavior across browsers.
 
 ```js
 // index.js
