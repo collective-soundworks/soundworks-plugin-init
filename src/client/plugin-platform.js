@@ -17,6 +17,7 @@ const pluginFactory = function(AbstractPlugin) {
       this._requiredFeatures = new Set();
 
       this.onUserGesture = this.onUserGesture.bind(this);
+      this._onUserGestureCalled = false;
       this.options = this.configure(defaults, options);
     }
 
@@ -127,6 +128,7 @@ const pluginFactory = function(AbstractPlugin) {
 
     /**
      * Method to be executed by the application on the first user gesture.
+     * Calling this method several times will result in a no-op after the first call.
      *
      * @example
      * myView.addEventListener((e) => {
@@ -134,6 +136,13 @@ const pluginFactory = function(AbstractPlugin) {
      * });
      */
     async onUserGesture(event) {
+      // prevent calling twice
+      if (this._onUserGestureCalled) {
+        return;
+      }
+
+      this._onUserGestureCalled = true;
+
       // cf. https://stackoverflow.com/questions/46746288/mousedown-and-mouseup-triggered-on-touch-devices
       // event.preventDefault();
 
