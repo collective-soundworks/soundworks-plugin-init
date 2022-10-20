@@ -112,20 +112,18 @@ The initialization lifecycle of a feature follows these steps:
 
 > available --> authorize --> initialize --> finalize
 
-- The `available` and `authorize` steps are executed when the plugin starts.
-- The `initialize` and `finalize` steps are executed when calling the `onUserGesture(e)` method, that should be called on a `mouseup` or `touchend` event (cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes).
+- The `available` step is executed when the plugin starts.
+- The `initialize` and `finalize` steps are executed when calling the `onUserGesture(e)` method (which must be called from a 'click' event, cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes).
 
-If all the steps of every feature resolves to `true` the plugin is marked as `ready`, else it passes an `errored` state and prevents the application from launching.
+If all the steps of each required feature resolves to `true` the plugin status is turned to 'started', else it is to `errored` and prevents the application from launching.
 
 Each of these steps can be defined by a function that must return a `Promise` resolving on `true` if the lifecyle can continue or `false`. If the function is not provided, the lifecycle step is simply ignored:
 
 ```
 - @param {Object} def - Definition of the feature.
-  + @param {String} def.id
-  + @param {Function : Promise.resolve(true|false)} [def.available=undefined]
-  + @param {Function : Promise.resolve(true|false)} [def.authorize=undefined]
-  + @param {Function : Promise.resolve(true|false)} [def.initialize=undefined]
-  + @param {Function : Promise.resolve(true|false)} [def.finalize=undefined]
+  + @param {Function : Promise.resolve(true|false)} [def.available=Promise.resolve(true)]
+  + @param {Function : Promise.resolve(true|false)} [def.initialize=Promise.resolve(true)]
+  + @param {Function : Promise.resolve(true|false)} [def.finalize=Promise.resolve(true)]
 ```
 
 #### Example - `@ircam/devicemotion`
@@ -140,8 +138,7 @@ import devicemotion from '@ircam/devicemotion';
 
 const client = new Client();
 // register device motion feature
-pluginPlatformFactory.addFeatureDefinition({
-  id: 'devicemotion',
+pluginPlatformFactory.addFeatureDefinition('devicemotion', {
   initialize: async () => {
     const result = await devicemotion.requestPermission();
     return (result === 'granted' ? true : false);
@@ -149,10 +146,10 @@ pluginPlatformFactory.addFeatureDefinition({
 });
 
 client.pluginManager.register('platform', pluginPlatformFactory, {
-  features: [
-    ['web-audio', audioContext],
-    ['devicemotion'],
-  ]
+  features: {
+    'web-audio': audioContext,
+    'devicemotion': null,,
+  }
 }, []);
 ```
 

@@ -1,7 +1,7 @@
 import NoSleep from 'nosleep.js';
 import MobileDetect from 'mobile-detect';
 // default built-in definition
-import * as defaultDefinitions from './features-definitions';
+import defaultDefinitions from './default-definitions.js';
 
 const definitions = {};
 
@@ -11,56 +11,64 @@ const pluginFactory = function(AbstractPlugin) {
       super(client, name);
 
       const defaults = {
-        features: [],
+        features: {},
+      };
+
+      for (let name in options) {
+        if (!(name in defaults)) {
+          throw new Error(`[plugin:${this.id}] Unknown option "${name}" (available options: ${Object.keys(defaults).join(', ')})`);
+        }
+      }
+
+      this.options = Object.assign(defaults, options);
+
+      this.state = {
+        userGestureTriggered: false,
+        infos: null,
+        available: null,
+        initialized: null,
+        finalized: null,
       };
 
       this._requiredFeatures = new Set();
+      this._startPromiseResolve = null;
+      this._startPromiseReject = null;
 
-      this.onUserGesture = this.onUserGesture.bind(this);
-      this._onUserGestureCalled = false;
-      this.options = this.configure(defaults, options);
-    }
+      const features = this.options.features;
 
-    /** @private */
-    configure(defaults, options) {
-      if (options.features) {
-        let features = options.features;
+      for (let id in features) {
+        // make sure args is an array
+        let args = features[id];
 
-        if (typeof features === 'string') {
-          features = [features];
+        if (!Array.isArray(args)) {
+          args = [args];
         }
 
-        // change that, this is an ugly API...
-        features.forEach((feature, index) => {
-          if (feature === undefined || feature === null) {
-            return;
-          }
+        this._requiredFeatures.add({ id, args });
 
-          if (typeof feature === 'string') {
-            feature = [feature]
-            features[index] = feature;
-          }
+        // automatically add feature to check audioContext on iOS
+        if (id === 'web-audio') {
+          const audioContext = args[0];
 
-          const [id, ...args] = feature;
-          this._requiredFeatures.add({ id, args });
-
-          // automatically add feature to check audioContext on iOS
-          if (feature[0] === 'web-audio') {
-            const audioContext = feature[1];
-
-            this._requiredFeatures.add({
-              id: 'clean-ios-audio-context',
-              args: [audioContext],
-            });
-          }
-        });
+          this._requiredFeatures.add({
+            id: 'check-ios-audio-context-sample-rate',
+            args: [audioContext],
+          });
+        }
       }
 
-      return super.configure(defaults, options);
+      this._requiredFeatures.forEach(({ id, args }) => {
+        if (!definitions[id]) {
+          throw new Error(`[plugin:${this.id}] Required undefined feature: "${id}"`)
+        }
+      });
+
+      // make "this" safe
+      this.onUserGesture = this.onUserGesture.bind(this);
     }
 
     /**
-     *  Algorithm:
+     *  Lifecycle:
      *  - check required features
      *  - if (false)
      *     show 'sorry' screen
@@ -76,16 +84,11 @@ const pluginFactory = function(AbstractPlugin) {
      * @private
      */
     async start() {
-      // check that all required features are defined
-      this._requiredFeatures.forEach(({ id, args }) => {
-        if (!definitions[id]) {
-          throw new Error(`[${this.name}] Undefined required feature: "${id}"`)
-        }
+      // this promise will be resolved of rejected only on user gesture
+      const startPromise = new Promise((resolve, reject) => {
+        this._startPromiseResolve = resolve;
+        this._startPromiseReject = reject;
       });
-
-      this.state = await this.client.stateManager.create(`s:${this.name}`);
-
-      this.started();
 
       const ua = window.navigator.userAgent;
       const md = new MobileDetect(ua);
@@ -105,25 +108,14 @@ const pluginFactory = function(AbstractPlugin) {
 
       const availablePromises = this._executeFeatures('available');
       const available = await this._resolveFeatures(availablePromises);
-      // console.log('available', available);
-      await this.state.set({ infos, available });
+      this.propagateStateChange({ infos, available });
 
       if (!available.result) {
-        return this.error('not compatible');
+        this._startPromiseReject('not compatible');
+        return;
       }
 
-      // ask for authorizations
-      // @note - this could probably be removed, but needs to update template-helpers too
-      const authorizedPromises = this._executeFeatures('authorize');
-      const authorized = await this._resolveFeatures(authorizedPromises);
-      // console.log('authorized', authorized);
-      await this.state.set({ authorized });
-
-      if (!authorized.result) {
-        return this.error('missing authorizations');
-      }
-
-      // @note - we now wait for user gesture to finish initialization
+      return startPromise;
     }
 
     /**
@@ -137,11 +129,11 @@ const pluginFactory = function(AbstractPlugin) {
      */
     async onUserGesture(event) {
       // prevent calling twice
-      if (this._onUserGestureCalled) {
+      if (this.state.userGestureTriggered === true) {
         return;
       }
 
-      this._onUserGestureCalled = true;
+      this.propagateStateChange({ userGestureTriggered: true });
 
       // cf. https://stackoverflow.com/questions/46746288/mousedown-and-mouseup-triggered-on-touch-devices
       // event.preventDefault();
@@ -151,11 +143,11 @@ const pluginFactory = function(AbstractPlugin) {
       // @note - we cannot `await` here, because `audioContext.resume` must be called
       // directly into the user gesture, for some reason Safari does not understand that
       // cf. https://stackoverflow.com/questions/57510426/cannot-resume-audiocontext-in-safari
-      this.state.set({ initializing: true });
+      // this.state.set({ initializing: true });
 
       // we need a user gesture:
       // cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-      if (event.type !== 'click' && event.type !== 'mouseup' && event.type !== 'touchend') {
+      if (event.type !== 'click') {
         throw new Error(`[[${this.name}] onUserGesture MUST be called on ""mouseup" or "touchend" events
 cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       }
@@ -190,7 +182,6 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       // so let's consider it is a problem of the application.
       //
       // -------------------------------------------------------------
-
       const noSleep = new NoSleep();
       noSleep.enable();
 
@@ -203,37 +194,36 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       // and `_resolveFeatures` is called after.
       const initializedPromises = this._executeFeatures('initialize');
       const initialized = await this._resolveFeatures(initializedPromises);
-      // console.log('initialized', initialized);
-      await this.state.set({ initialized });
+      this.propagateStateChange({ initialized });
 
       if (initialized.result === false) {
-        return this.error('initialization failed') ;
+        this._startPromiseReject('initialization failed');
+        return;
       }
 
       // @warning - no `await` should happen before that point
       const finalizedPromises = await this._executeFeatures('finalize');
       const finalized = await this._resolveFeatures(finalizedPromises);
-      // console.log('finalized', finalized);
-      await this.state.set({ finalized });
+      this.propagateStateChange({ finalized });
 
       if (finalized.result === false) {
-        return this.error('finalization failed') ;
+        this._startPromiseReject('finalization failed');
+        return;
       }
 
       // nothing failed, we are ready
-      this.ready();
+      this._startPromiseResolve();
     }
 
-    /**
-     * steps: [available, authorize, initialize, finalize]
-     */
+    // note (19/10/2022) @important - the split between this 2 methods looks silly,
+    // but is important in order to make devicemotion.requestPermission work on iOS
+    // so DO NOT change that!!!
     _executeFeatures(step) {
       const promises = {};
 
       for (const { id, args } of this._requiredFeatures) {
         if (definitions[id][step]) {
-          const state = this.state.getValues();
-          const featureResultPromise = definitions[id][step](state, ...args);
+          const featureResultPromise = definitions[id][step](this.state, ...args);
 
           promises[id] = featureResultPromise;
         } else {
@@ -264,26 +254,25 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
 /**
  * Structure of the definition for the test of a feature.
  *
- * @param {String} id
- * @param -  {Function : Promise.resolve(true|false)} [available=undefined]
- * @param -  {Function : Promise.resolve(true|false)} [authorize=undefined]
- * @param -  {Function : Promise.resolve(true|false)} [initialize=undefined]
- * @param -  {Function : Promise.resolve(true|false)} [finalize=undefined]
+ * @param {Object} - definition of a feature
+ * @param {String} obj.id
+ * @param {Function : Promise.resolve(true|false)} [obj.available=undefined] -
+ *  called *before* user gesture
+ * @param {Function : Promise.resolve(true|false)} [obj.initialize=undefined] -
+ *  called *after* user gesture
+ * @param {Function : Promise.resolve(true|false)} [obj.finalize=undefined] -
+ *  called *after* user gesture
  *
  * @param {module:soundworks/client.Platform~definition} obj - Definition of
  *  the feature.
  */
-pluginFactory.addFeatureDefinition = function(obj) {
-  definitions[obj.id] = obj;
-
-  if (obj.alias) {
-    definitions[obj.alias] = obj;
-  }
+pluginFactory.addFeatureDefinition = function(id, obj) {
+  definitions[id] = obj;
 }
 
 // add default definitions
-for (let name in defaultDefinitions) {
-  pluginFactory.addFeatureDefinition(defaultDefinitions[name]);
+for (let id in defaultDefinitions) {
+  pluginFactory.addFeatureDefinition(id, defaultDefinitions[id]);
 }
 
 export default pluginFactory;
