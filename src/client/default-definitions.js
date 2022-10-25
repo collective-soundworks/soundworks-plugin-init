@@ -1,10 +1,11 @@
 // keys:
-// - `available`: executed on start, before userGesture
-// - `initialize`: executed on userGesture
-// - `finalize`: executed on userGesture, after initialize
+// - alias, optionnnal aliased id
+// - `check`: executed on start, before userGesture
+// - `activate`: executed on userGesture
 export default {
   'web-audio': {
-    available: function(state, audioContext) {
+    alias: 'webaudio',
+    check: function(state, audioContext) {
       if (!audioContext) {
         throw new Error('feature `web-audio` requires an audio context as argument');
       }
@@ -12,7 +13,7 @@ export default {
       return Promise.resolve(!!audioContext);
     },
 
-    initialize: async function(state, audioContext) {
+    activate: async function(state, audioContext) {
       // @note - maybe not needed anymore, as even Safari implements that
       if (!('resume' in audioContext)) {
         audioContext.resume = () => {
@@ -40,25 +41,12 @@ export default {
         o.stop(audioContext.currentTime + 0.01);
       }
 
-      return Promise.resolve(true);
-    },
-  },
-
-  /**
-   * This definition is automatically required when the `web-audio` definition
-   * is required on iOS.
-   * Bascally reloads the page when the `audioContext.sampleRate` has a weird
-   * value, i.e. < 40000
-   */
-  'check-ios-audio-context-sample-rate': {
-    finalize: function(state, audioContext) {
+      // in iphones, sampleRate has been observed to be set at 16000Hz
+      // sometimes causing clicks and noisy audio, as no exhaustive testing
+      // has been made... just assume < 40000 is a bad value.
       if (state.infos.os === 'ios') {
-        // in iphones, sampleRate has been observed to be set at 16000Hz
-        // sometimes causing clicks and noisy audio, as no exhaustive testing
-        // has been made... just assume < 40000 is a bad value.
         if (audioContext.sampleRate < 40000) {
           window.location.reload(true);
-          Promise.resolve(false);
         }
       }
 

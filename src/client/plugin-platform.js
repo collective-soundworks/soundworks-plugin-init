@@ -25,9 +25,8 @@ const pluginFactory = function(AbstractPlugin) {
       this.state = {
         userGestureTriggered: false,
         infos: null,
-        available: null,
-        initialized: null,
-        finalized: null,
+        check: null,
+        activate: null,
       };
 
       this._requiredFeatures = new Set();
@@ -45,16 +44,6 @@ const pluginFactory = function(AbstractPlugin) {
         }
 
         this._requiredFeatures.add({ id, args });
-
-        // automatically add feature to check audioContext on iOS
-        if (id === 'web-audio') {
-          const audioContext = args[0];
-
-          this._requiredFeatures.add({
-            id: 'check-ios-audio-context-sample-rate',
-            args: [audioContext],
-          });
-        }
       }
 
       this._requiredFeatures.forEach(({ id, args }) => {
@@ -63,26 +52,10 @@ const pluginFactory = function(AbstractPlugin) {
         }
       });
 
-      // make "this" safe
+      // make sure "this" is safe
       this.onUserGesture = this.onUserGesture.bind(this);
     }
 
-    /**
-     *  Lifecycle:
-     *  - check required features
-     *  - if (false)
-     *     show 'sorry' screen
-     *  - else
-     *     show 'welcome' screen
-     *     execute start hook (promise)
-     *     - if (promise === true)
-     *        show touch to start
-     *        bind events
-     *     - else
-     *        show 'sorry' screen
-     *
-     * @private
-     */
     async start() {
       // this promise will be resolved of rejected only on user gesture
       const startPromise = new Promise((resolve, reject) => {
@@ -106,12 +79,14 @@ const pluginFactory = function(AbstractPlugin) {
 
       const infos = { mobile, os };
 
-      const availablePromises = this._executeFeatures('available');
-      const available = await this._resolveFeatures(availablePromises);
-      this.propagateStateChange({ infos, available });
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      if (!available.result) {
-        this._startPromiseReject('not compatible');
+      const checkPromises = this._executeFeatures('check');
+      const checkResults = await this._resolveFeatures(checkPromises);
+      this.propagateStateChange({ infos, check: checkResults });
+
+      if (checkResults.result === false) {
+        this._startPromiseReject('platform check failed');
         return;
       }
 
@@ -185,29 +160,17 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       const noSleep = new NoSleep();
       noSleep.enable();
 
-      // execute interaction hooks from the platform
-
       // note (24/09/2021) - Safari > 14 does not allow any async calls before
       // accesing deviceMotion.requestPermission, so all initialize should be
       // be called synchronously, and we must resolve the Promises after
       // therefore `_resolveFeatures` is now a synchronous `_executeFeatures`
       // and `_resolveFeatures` is called after.
-      const initializedPromises = this._executeFeatures('initialize');
-      const initialized = await this._resolveFeatures(initializedPromises);
-      this.propagateStateChange({ initialized });
+      const activatePromises = this._executeFeatures('activate');
+      const activateResults = await this._resolveFeatures(activatePromises);
+      this.propagateStateChange({ activate: activateResults });
 
-      if (initialized.result === false) {
-        this._startPromiseReject('initialization failed');
-        return;
-      }
-
-      // @warning - no `await` should happen before that point
-      const finalizedPromises = await this._executeFeatures('finalize');
-      const finalized = await this._resolveFeatures(finalizedPromises);
-      this.propagateStateChange({ finalized });
-
-      if (finalized.result === false) {
-        this._startPromiseReject('finalization failed');
+      if (activateResults.result === false) {
+        this._startPromiseReject('activation failed');
         return;
       }
 
@@ -216,7 +179,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     }
 
     // note (19/10/2022) @important - the split between this 2 methods looks silly,
-    // but is important in order to make devicemotion.requestPermission work on iOS
+    // but is important in order to make `devicemotion.requestPermission` work on iOS
     // so DO NOT change that!!!
     _executeFeatures(step) {
       const promises = {};
@@ -224,10 +187,9 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       for (const { id, args } of this._requiredFeatures) {
         if (definitions[id][step]) {
           const featureResultPromise = definitions[id][step](this.state, ...args);
-
           promises[id] = featureResultPromise;
         } else {
-          promises[id] = Promise.resolve(true); // result cannot change in this case
+          promises[id] = Promise.resolve(true);
         }
       };
 
@@ -254,20 +216,20 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
 /**
  * Structure of the definition for the test of a feature.
  *
- * @param {Object} - definition of a feature
- * @param {String} obj.id
- * @param {Function : Promise.resolve(true|false)} [obj.available=undefined] -
+ * @param {String} id - Id of the feature
+ * @param {Object} - Definition of the feature
+ * @param {Function : Promise.resolve(true|false)} [obj.check=Promise.resolve(true)] -
  *  called *before* user gesture
- * @param {Function : Promise.resolve(true|false)} [obj.initialize=undefined] -
- *  called *after* user gesture
- * @param {Function : Promise.resolve(true|false)} [obj.finalize=undefined] -
- *  called *after* user gesture
- *
- * @param {module:soundworks/client.Platform~definition} obj - Definition of
- *  the feature.
+ * @param {Function : Promise.resolve(true|false)} [obj.activate=Promise.resolve(true)] -
+ *  called on user gesture
  */
-pluginFactory.addFeatureDefinition = function(id, obj) {
-  definitions[id] = obj;
+pluginFactory.addFeatureDefinition = function(id, def) {
+  definitions[id] = def;
+
+  // allow regitering same definition with a different name, e.g. 'web-audio' or 'webaudio'
+  if (def.alias) {
+    definitions[def.alias] = def;
+  }
 }
 
 // add default definitions
