@@ -1,19 +1,20 @@
+import isPlainObject from 'is-plain-obj';
 // keys:
 // - alias, optionnnal aliased id
 // - `check`: executed on start, before userGesture
 // - `activate`: executed on userGesture
 export default {
+  // resume audio context
   'web-audio': {
-    alias: 'webaudio',
-    check: function(state, audioContext) {
+    aliases: ['webaudio', 'audio-context', 'audioContext'],
+    check: function(plugin, featureId, audioContext) {
       if (!audioContext) {
         throw new Error('feature `web-audio` requires an audio context as argument');
       }
 
       return Promise.resolve(!!audioContext);
     },
-
-    activate: async function(state, audioContext) {
+    activate: async function(plugin, featureId, audioContext) {
       // @note - maybe not needed anymore, as even Safari implements that
       if (!('resume' in audioContext)) {
         audioContext.resume = () => {
@@ -23,34 +24,102 @@ export default {
 
       const result = await audioContext.resume();
 
-      if (!state.infos.mobile) {
-        return Promise.resolve(true);
-      }
+      if (plugin.state.infos.mobile) {
+        const g = audioContext.createGain();
+        g.connect(audioContext.destination);
+        g.gain.value = 0.000000001; // -180dB
 
-      const g = audioContext.createGain();
-      g.connect(audioContext.destination);
-      g.gain.value = 0.000000001; // -180dB
+        const o = audioContext.createOscillator();
+        o.connect(g);
+        o.frequency.value = 20;
+        o.start(0);
 
-      const o = audioContext.createOscillator();
-      o.connect(g);
-      o.frequency.value = 20;
-      o.start(0);
+        // prevent android from stopping audio by keeping the oscillator active
+        if (plugin.state.infos.os !== 'android') {
+          o.stop(audioContext.currentTime + 0.01);
+        }
 
-      // prevent android from stopping audio by keeping the oscillator active
-      if (state.infos.os !== 'android') {
-        o.stop(audioContext.currentTime + 0.01);
-      }
-
-      // in iphones, sampleRate has been observed to be set at 16000Hz
-      // sometimes causing clicks and noisy audio, as no exhaustive testing
-      // has been made... just assume < 40000 is a bad value.
-      if (state.infos.os === 'ios') {
-        if (audioContext.sampleRate < 40000) {
-          window.location.reload(true);
+        // in iphones, sampleRate has been observed to be set at 16000Hz
+        // sometimes causing clicks and noisy audio, as no exhaustive testing
+        // has been made... just assume < 40000 is a bad value.
+        if (plugin.state.infos.os === 'ios') {
+          if (audioContext.sampleRate < 40000) {
+            window.location.reload(true);
+          }
         }
       }
+
+      plugin._features[featureId] = audioContext;
 
       return Promise.resolve(true);
     },
   },
+  // use @ircam/devicemotion
+  '@ircam/devicemotion': {
+    aliases: ['devicemotion', 'device-motion'],
+    check: async function(plugin, featureId, devicemotion) {
+      if (window.location.protocol === 'http:') {
+        console.warn('[soundworks:PluginPlatform] You requested the devicemotion feature but the protocol you use is http, access to devicemotion requires a secure https context');
+      }
+    },
+    activate: async function(plugin, featureId, devicemotion) {
+      const result = await devicemotion.requestPermission();
+
+      if (result === 'granted') {
+        plugin._features[featureId] = devicemotion;
+      }
+
+      return (result === 'granted' ? true : false);
+    },
+  },
+  // access to microphone
+  'microphone': {
+    aliases: ['mic', 'micro'],
+    check: async function(plugin, featureId, options) {
+      return !!navigator.mediaDevices.getUserMedia;
+    },
+    activate: async function(plugin, featureId, options) {
+      try {
+        // we don't any traitement by default
+        let config = {
+          echoCancellation: false,
+          noiseReduction: false,
+          autoGainControl: false,
+        };
+
+        if (isPlainObject(options)) {
+          Object.assign(config, options);
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: config });
+        plugin._features[featureId] = stream;
+
+        return true;
+      } catch (err) {
+        return false;
+      }
+    },
+  },
+  // access to microphone
+  'camera': {
+    check: async function(plugin, featureId, options) {
+      return !!navigator.mediaDevices.getUserMedia;
+    },
+    activate: async function(plugin, featureId, options) {
+      try {
+        let config = true; // get default
+
+        if (isPlainObject(options)) {
+          config = options;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({ video: options });
+        plugin._features[featureId] = stream;
+
+        return true;
+      } catch (err) {
+        return false;
+      }
+    },
+  }
 };

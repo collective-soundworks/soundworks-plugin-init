@@ -5,39 +5,19 @@ import defaultDefinitions from './default-definitions.js';
 
 const definitions = {};
 
-const pluginFactory = function(AbstractPlugin) {
-  return class PluginPlatform extends AbstractPlugin {
-    constructor(client, name, options) {
-      super(client, name);
+const pluginFactory = function(Plugin) {
+  return class PluginPlatform extends Plugin {
+    constructor(client, id, options) {
+      super(client, id);
 
-      const defaults = {
-        features: {},
-      };
-
-      for (let name in options) {
-        if (!(name in defaults)) {
-          throw new Error(`[plugin:${this.id}] Unknown option "${name}" (available options: ${Object.keys(defaults).join(', ')})`);
-        }
-      }
+      const defaults = {};
 
       this.options = Object.assign(defaults, options);
-
-      this.state = {
-        userGestureTriggered: false,
-        infos: null,
-        check: null,
-        activate: null,
-      };
-
       this._requiredFeatures = new Set();
-      this._startPromiseResolve = null;
-      this._startPromiseReject = null;
-
-      const features = this.options.features;
-
-      for (let id in features) {
+      // check options and required features
+      for (let id in this.options) {
         // make sure args is an array
-        let args = features[id];
+        let args = this.options[id];
 
         if (!Array.isArray(args)) {
           args = [args];
@@ -48,12 +28,24 @@ const pluginFactory = function(AbstractPlugin) {
 
       this._requiredFeatures.forEach(({ id, args }) => {
         if (!definitions[id]) {
-          throw new Error(`[plugin:${this.id}] Required undefined feature: "${id}"`)
+          throw new Error(`[plugin:${this.id}] Required undefined feature: "${id}"`);
         }
       });
 
+      //
+      this.state = {
+        userGestureTriggered: false,
+        infos: null,
+        check: null,
+        activate: null,
+      };
+
       // make sure "this" is safe
       this.onUserGesture = this.onUserGesture.bind(this);
+
+      this._startPromiseResolve = null;
+      this._startPromiseReject = null;
+      this._features = new Map();
     }
 
     async start() {
@@ -86,7 +78,7 @@ const pluginFactory = function(AbstractPlugin) {
       this.propagateStateChange({ infos, check: checkResults });
 
       if (checkResults.result === false) {
-        this._startPromiseReject('platform check failed');
+        this._startPromiseReject(`[soundworks:PluginPlatform] Feature not supported`);
         return;
       }
 
@@ -123,7 +115,7 @@ const pluginFactory = function(AbstractPlugin) {
       // we need a user gesture:
       // cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
       if (event.type !== 'click') {
-        throw new Error(`[[${this.name}] onUserGesture MUST be called on ""mouseup" or "touchend" events
+        throw new Error(`[soundworks:PluginPlatform] onUserGesture MUST be called on ""mouseup" or "touchend" events
 cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       }
 
@@ -170,12 +162,20 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       this.propagateStateChange({ activate: activateResults });
 
       if (activateResults.result === false) {
-        this._startPromiseReject('activation failed');
+        this._startPromiseReject(`[soundworks:PluginPlatform] Activation failed`);
         return;
       }
 
       // nothing failed, we are ready
       this._startPromiseResolve();
+    }
+
+    /**
+     * Returns the poayload associated to a given feature
+     * @param {String} featureId - Id of the feature as given when the plugin was registered
+     */
+    get(featureId) {
+      return this._features[featureId];
     }
 
     // note (19/10/2022) @important - the split between this 2 methods looks silly,
@@ -186,7 +186,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
 
       for (const { id, args } of this._requiredFeatures) {
         if (definitions[id][step]) {
-          const featureResultPromise = definitions[id][step](this.state, ...args);
+          const featureResultPromise = definitions[id][step](this, id, ...args);
           promises[id] = featureResultPromise;
         } else {
           promises[id] = Promise.resolve(true);
@@ -205,7 +205,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       for (let id in promises) {
         const featureResult = await promises[id];
         result.details[id] = featureResult;
-        result.result = result.result || featureResult;
+        result.result = result.result && featureResult;
       }
 
       return result;
@@ -224,11 +224,22 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
  *  called on user gesture
  */
 pluginFactory.addFeatureDefinition = function(id, def) {
+  // check unknow key in def allowed is [aliases, check, activate]
+  for (let key in def) {
+    if (!['aliases', 'check', 'activate'].includes(key)) {
+      throw new Error(`[soundworks:PluginPlatform] Invalid key "${key}" in feature definition ${id}`);
+    }
+  }
+  // check that we have at least 'check' or 'activate' in keys'
+  if (!('check' in def || 'activate' in def)) {
+    throw new Error(`[soundworks:PluginPlatform] Invalid def "${id}" should contain at least a "check" or an "activate" function`);
+  }
+
   definitions[id] = def;
 
-  // allow regitering same definition with a different name, e.g. 'web-audio' or 'webaudio'
-  if (def.alias) {
-    definitions[def.alias] = def;
+  // register same definition under different names, e.g. 'web-audio', 'webaudio', 'webAudio', etc...
+  if (def.aliases) {
+    def.aliases.forEach(alias => definitions[alias] = def);
   }
 }
 
