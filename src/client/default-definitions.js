@@ -19,10 +19,10 @@ export default {
       if (!('resume' in audioContext)) {
         audioContext.resume = () => {
           return Promise.resolve();
-        }
+        };
       }
 
-      const result = await audioContext.resume();
+      await audioContext.resume();
 
       if (plugin.state.infos.mobile) {
         const g = audioContext.createGain();
@@ -57,9 +57,9 @@ export default {
   // use @ircam/devicemotion
   '@ircam/devicemotion': {
     aliases: ['devicemotion', 'device-motion'],
-    check: async function(plugin, featureId, devicemotion) {
+    check: async function(plugin, featureId, _devicemotion) {
       if (window.location.protocol === 'http:') {
-        console.warn('[soundworks:PluginPlatform] You requested the devicemotion feature but the protocol you use is http, access to devicemotion requires a secure https context');
+        console.warn(`[soundworks:PluginPlatform] The "${featureId}" feature has been requested, but the page is accessed through the "http" protocol. Be aware that access to "${featureId}" requires a secure "https" context (except for localhost)`);
       }
     },
     activate: async function(plugin, featureId, devicemotion) {
@@ -75,7 +75,11 @@ export default {
   // access to microphone
   'microphone': {
     aliases: ['mic', 'micro'],
-    check: async function(plugin, featureId, options) {
+    check: async function(plugin, featureId, _options) {
+      if (window.location.protocol === 'http:') {
+        console.warn(`[soundworks:PluginPlatform] The "${featureId}" feature has been requested, but the page is accessed through the "http" protocol. Be aware that access to "${featureId}" requires a secure "https" context (except for localhost)`);
+      }
+
       return !!navigator.mediaDevices.getUserMedia;
     },
     activate: async function(plugin, featureId, options) {
@@ -102,18 +106,22 @@ export default {
   },
   // access to microphone
   'camera': {
-    check: async function(plugin, featureId, options) {
+    check: async function(plugin, featureId, _options) {
+      if (window.location.protocol === 'http:') {
+        console.warn(`[soundworks:PluginPlatform] The "${featureId}" feature has been requested, but the page is accessed through the "http" protocol. Be aware that access to "${featureId}" requires a secure "https" context (except for localhost)`);
+      }
+
       return !!navigator.mediaDevices.getUserMedia;
     },
     activate: async function(plugin, featureId, options) {
       try {
-        let config = true; // get default
+        let config = true;
 
         if (isPlainObject(options)) {
           config = options;
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: options });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: config });
         plugin._features[featureId] = stream;
 
         return true;
@@ -121,5 +129,5 @@ export default {
         return false;
       }
     },
-  }
+  },
 };

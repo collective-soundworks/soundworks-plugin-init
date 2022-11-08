@@ -26,7 +26,7 @@ const pluginFactory = function(Plugin) {
         this._requiredFeatures.add({ id, args });
       }
 
-      this._requiredFeatures.forEach(({ id, args }) => {
+      this._requiredFeatures.forEach(({ id }) => {
         if (!definitions[id]) {
           throw new Error(`[plugin:${this.id}] Required undefined feature: "${id}"`);
         }
@@ -191,7 +191,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
         } else {
           promises[id] = Promise.resolve(true);
         }
-      };
+      }
 
       return promises;
     }
@@ -210,8 +210,8 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
 
       return result;
     }
-  }
-}
+  };
+};
 
 /**
  * Structure of the definition for the test of a feature.
@@ -241,7 +241,7 @@ pluginFactory.addFeatureDefinition = function(id, def) {
   if (def.aliases) {
     def.aliases.forEach(alias => definitions[alias] = def);
   }
-}
+};
 
 // add default definitions
 for (let id in defaultDefinitions) {

@@ -1,8 +1,7 @@
-const path = require('node:path');
-const { fork } = require('node:child_process');
+import path from 'node:path';
+import { fork } from 'node:child_process';
 
-const assert = require('chai').assert;
-const puppeteer = require('puppeteer');
+import puppeteer from 'puppeteer';
 
 const appPath = path.join(process.cwd(), 'tests', 'features');
 
@@ -10,7 +9,7 @@ let forked;
 let browser;
 
 describe('PluginPlatform', () => {
-  before('', async() => {
+  before('', async () => {
     browser = await puppeteer.launch();
 
     const serverIndex = path.join(appPath, '.build', 'server', 'index.js');
@@ -23,7 +22,7 @@ describe('PluginPlatform', () => {
           resolve();
         }
       });
-    })
+    });
   });
 
   after(async () => {
@@ -114,9 +113,9 @@ describe('PluginPlatform', () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       return new Promise(resolve => {
-        page.on("pageerror", function(err) {
-          theTempValue = err.toString();
-          console.log("Page error: " + theTempValue);
+        page.on('pageerror', function(err) {
+          const theTempValue = err.toString();
+          console.log(`Page error: ${theTempValue}`);
         });
 
         page.on('console', msg => {
@@ -146,9 +145,9 @@ describe('PluginPlatform', () => {
       await new Promise(resolve => setTimeout(resolve, 200));
 
       return new Promise(resolve => {
-        page.on("pageerror", function(err) {
-          theTempValue = err.toString();
-          console.log("Page error: " + theTempValue);
+        page.on('pageerror', function(err) {
+          const theTempValue = err.toString();
+          console.log(`Page error: ${theTempValue}`);
         });
 
         page.on('console', msg => {

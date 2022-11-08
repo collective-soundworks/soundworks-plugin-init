@@ -1,6 +1,4 @@
-const pluginFactory = function(Plugin) {
+export default function(Plugin) {
   // server-side does nothing special, just there for consistency
-  return class PluginPlatform extends Plugin {}
+  return class PluginPlatform extends Plugin {};
 }
-
-export default pluginFactory;
