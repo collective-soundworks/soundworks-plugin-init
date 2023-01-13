@@ -1,5 +1,6 @@
+import fs from 'node:fs';
 import path from 'node:path';
-import { fork } from 'node:child_process';
+import { fork, execSync } from 'node:child_process';
 
 import puppeteer from 'puppeteer';
 
@@ -9,15 +10,28 @@ let forked;
 let browser;
 
 describe('PluginPlatform', () => {
-  before('', async () => {
+  before('run server', async function() {
+    this.timeout(3 * 60 * 1000);
+
+    // install deps if not present
+    if (!fs.existsSync(path.join(appPath, 'node_modules'))) {
+      console.log('> Installing dependencies...');
+
+      execSync(`npm install`, { cwd: appPath });
+    }
+
+    console.log('> Building app...');
+    execSync(`npm run build`, { cwd: appPath });
+
     browser = await puppeteer.launch();
 
+    console.log('> Launching server...');
     const serverIndex = path.join(appPath, '.build', 'server', 'index.js');
     forked = fork(serverIndex, { cwd: appPath });
 
     return new Promise(resolve => {
       forked.on('message', async msg => {
-        console.log(msg);
+
         if (msg === 'soundworks:server:started') {
           resolve();
         }
@@ -48,7 +62,7 @@ describe('PluginPlatform', () => {
           }
         });
 
-        page.click('#launch-platform');
+        page.click('#launch-init');
       });
     });
 
@@ -69,7 +83,7 @@ describe('PluginPlatform', () => {
           }
         });
 
-        page.click('#launch-platform');
+        page.click('#launch-init');
       });
     });
   });
@@ -98,7 +112,7 @@ describe('PluginPlatform', () => {
           }
         });
 
-        page.click('#launch-platform');
+        page.click('#launch-init');
       });
     });
   });
@@ -130,7 +144,7 @@ describe('PluginPlatform', () => {
           }
         });
 
-        page.click('#launch-platform');
+        page.click('#launch-init');
       });
     });
   });
@@ -162,7 +176,7 @@ describe('PluginPlatform', () => {
           }
         });
 
-        page.click('#launch-platform');
+        page.click('#launch-init');
       });
     });
   });

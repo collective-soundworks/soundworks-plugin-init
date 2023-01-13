@@ -6,7 +6,7 @@ import defaultDefinitions from './default-definitions.js';
 const definitions = {};
 
 const pluginFactory = function(Plugin) {
-  return class PluginPlatform extends Plugin {
+  return class PluginInit extends Plugin {
     constructor(client, id, options) {
       super(client, id);
 
@@ -28,7 +28,7 @@ const pluginFactory = function(Plugin) {
 
       this._requiredFeatures.forEach(({ id }) => {
         if (!definitions[id]) {
-          throw new Error(`[plugin:${this.id}] Required undefined feature: "${id}"`);
+          throw new Error(`[soundworks:plugin:${this.id}] Required undefined feature: "${id}"`);
         }
       });
 
@@ -78,7 +78,7 @@ const pluginFactory = function(Plugin) {
       this.propagateStateChange({ infos, check: checkResults });
 
       if (checkResults.result === false) {
-        this._startPromiseReject(`[soundworks:PluginPlatform] Feature not supported`);
+        this._startPromiseReject(`[soundworks:plugin:${this.id}] Feature not supported`);
         return;
       }
 
@@ -115,7 +115,7 @@ const pluginFactory = function(Plugin) {
       // we need a user gesture:
       // cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
       if (event.type !== 'click') {
-        throw new Error(`[soundworks:PluginPlatform] onUserGesture MUST be called on ""mouseup" or "touchend" events
+        throw new Error(`[soundworks:plugin:${this.id}] onUserGesture MUST be called on ""mouseup" or "touchend" events
 cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       }
 
@@ -162,7 +162,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       this.propagateStateChange({ activate: activateResults });
 
       if (activateResults.result === false) {
-        this._startPromiseReject(`[soundworks:PluginPlatform] Activation failed`);
+        this._startPromiseReject(`[soundworks:plugin:${this.id}] Activation failed`);
         return;
       }
 
@@ -227,12 +227,12 @@ pluginFactory.addFeatureDefinition = function(id, def) {
   // check unknow key in def allowed is [aliases, check, activate]
   for (let key in def) {
     if (!['aliases', 'check', 'activate'].includes(key)) {
-      throw new Error(`[soundworks:PluginPlatform] Invalid key "${key}" in feature definition ${id}`);
+      throw new Error(`[soundworks:plugin:${this.id}] Invalid key "${key}" in feature definition ${id}`);
     }
   }
   // check that we have at least 'check' or 'activate' in keys'
   if (!('check' in def || 'activate' in def)) {
-    throw new Error(`[soundworks:PluginPlatform] Invalid def "${id}" should contain at least a "check" or an "activate" function`);
+    throw new Error(`[soundworks:plugin:${this.id}] Invalid def "${id}" should contain at least a "check" or an "activate" function`);
   }
 
   definitions[id] = def;
