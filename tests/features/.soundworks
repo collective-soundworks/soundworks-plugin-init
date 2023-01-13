@@ -1,0 +1,5 @@
+{
+  "name": "features",
+  "eslint": true,
+  "language": "js"
+}
