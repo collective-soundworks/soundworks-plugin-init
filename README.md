@@ -2,6 +2,8 @@
 
 [`soundworks`](https://soundworks.dev) plugin to simplify initialization of certain client features such as resuming audio context, etc. 
 
+*__WARNING: The `@soundworks/plugin-plaform-init` package targets `soundworks#v4` which is still under heavy development.__*
+
 ## Table of Contents
 
 <!-- toc -->
