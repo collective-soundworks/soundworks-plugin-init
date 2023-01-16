@@ -1,7 +1,7 @@
 {
   "name": "@soundworks/plugin-platform-init",
   "version": "1.0.0-alpha.0",
-  "description": "soundworks plugin to simplify initialization of certain client features ",
+  "description": "soundworks plugin to simplify initialization of certain client features",
   "authors": [
     "Benjamin Matuszewski"
   ],
@@ -16,8 +16,8 @@
   },
   "type": "module",
   "exports": {
-    "./client.js": "./src/client/plugin-init.js",
-    "./server.js": "./src/server/plugin-init.js"
+    "./client.js": "./src/client/plugin-platform-init.js",
+    "./server.js": "./src/server/plugin-platform-init.js"
   },
   "repository": {
     "type": "git",
