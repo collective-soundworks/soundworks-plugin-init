@@ -33,6 +33,9 @@ async function main($container) {
    */
   const client = new Client(config);
 
+  let onCheckCalled = false;
+  let onActivateCalled = false;
+
   /**
    * Register some soundworks plugins, you will need to install the plugins
    * before hand (run `npx soundworks` for help)
@@ -70,6 +73,19 @@ async function main($container) {
       });
       break;
     }
+    case 'userDefinedPlaceholders': {
+      client.pluginManager.register('platform-init', platformInitPlugin, {
+        onCheck: (plugin) => {
+          onCheckCalled = true;
+          return Promise.resolve();
+        },
+        onActivate: (plugin) => {
+          onActivateCalled = true;
+          return Promise.resolve();
+        }
+      });
+      break;
+    }
   }
 
 
@@ -104,6 +120,7 @@ async function main($container) {
     <a href="/?case=devicemotion">devicemotion</a>
     <a href="/?case=microphone">microphone</a>
     <a href="/?case=camera">camera</a>
+    <a href="/?case=userDefinedPlaceholders">user defined "onCheck" and "onActivate" placeholders</a>
     ${testCase === 'camera' ? html`<br /><video autoplay="true"></video>` : nothing}
   `, $container);
 
@@ -160,6 +177,11 @@ async function main($container) {
         console.log(`${testCase}: access failed`);
       }
 
+      break;
+    }
+    case 'userDefinedPlaceholders': {
+      console.log(`${testCase}: onCheck called - ${onCheckCalled}`);
+      console.log(`${testCase}: onActivate called - ${onActivateCalled}`);
       break;
     }
   }

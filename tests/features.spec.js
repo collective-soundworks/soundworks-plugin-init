@@ -166,11 +166,54 @@ describe('PluginPlatform', () => {
 
         page.on('console', msg => {
           const text = msg.text();
+          // console.log(text);
           // for whatever reason the doesn't seems to be allowed in puppeteer
           if (text === `${testCase}: access failed`) {
             console.log(text);
             console.log('[note] looks normal from puppeteer point of view');
 
+            page.close();
+            resolve();
+          }
+        });
+
+        page.click('#launch-init');
+      });
+    });
+  });
+
+  describe('onCheck && onActivate', () => {
+    it(`should execute onCheck and onActivate placeholders`, async function() {
+      this.timeout(5000);
+
+      const testCase = 'userDefinedPlaceholders';
+      const page = await browser.newPage();
+      await page.goto(`http://127.0.0.1:8000?case=${testCase}`);
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      let onCheckOk = false;
+      let onActivateOk = false;
+
+      return new Promise(resolve => {
+        page.on('pageerror', function(err) {
+          const theTempValue = err.toString();
+          console.log(`Page error: ${theTempValue}`);
+        });
+
+        page.on('console', msg => {
+          const text = msg.text();
+          // for whatever reason the doesn't seems to be allowed in puppeteer
+          if (text === `${testCase}: onCheck called - true`) {
+            console.log(text);
+            onCheckOk = true;
+          }
+
+          if (text === `${testCase}: onActivate called - true`) {
+            console.log(text);
+            onActivateOk = true;
+          }
+
+          if (onCheckOk && onActivateOk) {
             page.close();
             resolve();
           }

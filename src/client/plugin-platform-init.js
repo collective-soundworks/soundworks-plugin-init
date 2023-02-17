@@ -10,12 +10,20 @@ const pluginFactory = function(Plugin) {
     constructor(client, id, options) {
       super(client, id);
 
-      const defaults = {};
+      const defaults = {
+        onCheck: () => Promise.resolve(true),
+        onActivate: () => Promise.resolve(true),
+      };
 
       this.options = Object.assign(defaults, options);
       this._requiredFeatures = new Set();
       // check options and required features
       for (let id in this.options) {
+        // handle special onCheck and onActivate cases
+        if (id === 'onCheck' || id === 'onActivate') {
+          continue;
+        }
+
         // make sure args is an array
         let args = this.options[id];
 
@@ -48,6 +56,8 @@ const pluginFactory = function(Plugin) {
       this._features = new Map();
     }
 
+    // this is executed when the plugin manager starts but the returned promise
+    // is resolved only on user gesture
     async start() {
       // this promise will be resolved of rejected only on user gesture
       const startPromise = new Promise((resolve, reject) => {
@@ -159,6 +169,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       // and `_resolveFeatures` is called after.
       const activatePromises = this._executeFeatures('activate');
       const activateResults = await this._resolveFeatures(activatePromises);
+
       this.propagateStateChange({ activate: activateResults });
 
       if (activateResults.result === false) {
@@ -183,6 +194,12 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     // so DO NOT change that!!!
     _executeFeatures(step) {
       const promises = {};
+
+      if (step === 'check') {
+        promises.onCheck = this.options.onCheck(this);
+      } else if (step === 'activate') {
+        promises.onActivate = this.options.onActivate(this);
+      }
 
       for (const { id, args } of this._requiredFeatures) {
         if (definitions[id][step]) {
@@ -232,14 +249,24 @@ pluginFactory.addFeatureDefinition = function(id, def) {
   }
   // check that we have at least 'check' or 'activate' in keys'
   if (!('check' in def || 'activate' in def)) {
-    throw new Error(`[soundworks:plugin:PlatformInit] Invalid def "${id}" should contain at least a "check" or an "activate" function`);
+    throw new Error(`[soundworks:plugin:PlatformInit] Invalid definition "${id}" should contain at least a "check" or an "activate" function`);
   }
 
-  definitions[id] = def;
+  if (definitions[id] === undefined) {
+    definitions[id] = def;
+  } else {
+    throw new Error(`[soundworks:plugin:PlatformInit] Definition "${id}" already exists`);
+  }
 
   // register same definition under different names, e.g. 'web-audio', 'webaudio', 'webAudio', etc...
   if (def.aliases) {
-    def.aliases.forEach(alias => definitions[alias] = def);
+    def.aliases.forEach(alias => {
+      if (definitions[alias] === undefined) {
+        definitions[alias] = def;
+      } else {
+        throw new Error(`[soundworks:plugin:PlatformInit] Definition "${id}" already exists`);
+      }
+    });
   }
 };
 
