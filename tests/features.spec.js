@@ -23,7 +23,7 @@ describe('PluginPlatform', () => {
     console.log('> Building app...');
     execSync(`npm run build`, { cwd: appPath });
 
-    browser = await puppeteer.launch();
+    browser = await puppeteer.launch({ headless: true });
 
     console.log('> Launching server...');
     const serverIndex = path.join(appPath, '.build', 'server', 'index.js');
@@ -117,7 +117,7 @@ describe('PluginPlatform', () => {
     });
   });
 
-  describe('feature: microphone', () => {
+  describe.only('feature: microphone', () => {
     it(`should access microphone`, async function() {
       this.timeout(5000);
 
@@ -134,9 +134,9 @@ describe('PluginPlatform', () => {
 
         page.on('console', msg => {
           const text = msg.text();
+          console.log(text);
           // for whatever reason the doesn't seems to be allowed in puppeteer
           if (text === `${testCase}: access failed`) {
-            console.log(text);
             console.log('[note] looks normal from puppeteer point of view');
 
             page.close();
@@ -149,7 +149,7 @@ describe('PluginPlatform', () => {
     });
   });
 
-  describe('feature: camera', () => {
+  describe.only('feature: camera', () => {
     it(`should access camera`, async function() {
       this.timeout(5000);
 
@@ -166,10 +166,10 @@ describe('PluginPlatform', () => {
 
         page.on('console', msg => {
           const text = msg.text();
+          console.log(text);
           // console.log(text);
           // for whatever reason the doesn't seems to be allowed in puppeteer
           if (text === `${testCase}: access failed`) {
-            console.log(text);
             console.log('[note] looks normal from puppeteer point of view');
 
             page.close();

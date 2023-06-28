@@ -1,4 +1,4 @@
-import isPlainObject from 'is-plain-obj';
+import { isPlainObject } from '@ircam/sc-utils';
 // keys:
 // - alias, optionnnal aliased id
 // - `check`: executed on start, before userGesture

@@ -4,7 +4,7 @@ import { Server } from '@soundworks/core/server.js';
 import { loadConfig } from '../utils/load-config.js';
 import '../utils/catch-unhandled-errors.js';
 
-import platformInitPlugin from '../../../../src/server/plugin-platform-init.js';
+import platformInitPlugin from '../../../../src/PluginPlatformInitServer.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api

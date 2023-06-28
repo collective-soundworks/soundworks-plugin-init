@@ -2,11 +2,13 @@ import NoSleep from 'nosleep.js';
 import MobileDetect from 'mobile-detect';
 // default built-in definition
 import defaultDefinitions from './default-definitions.js';
+// import view so it can be used by the launcher
+import '../components/sw-plugin-platform-init.js';
 
 const definitions = {};
 
 const pluginFactory = function(Plugin) {
-  return class PluginPlatformInit extends Plugin {
+  class PluginPlatformInitClient extends Plugin {
     constructor(client, id, options) {
       super(client, id);
 
@@ -228,6 +230,8 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
       return result;
     }
   };
+
+  return PluginPlatformInitClient;
 };
 
 /**

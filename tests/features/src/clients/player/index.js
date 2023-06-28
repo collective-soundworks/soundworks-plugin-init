@@ -6,7 +6,7 @@ import devicemotion from '@ircam/devicemotion';
 
 import createLayout from './views/layout.js';
 
-import platformInitPlugin from '../../../../../src/client/plugin-platform-init.js';
+import platformInitPlugin from '../../../../../src/PluginPlatformInitClient.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -111,6 +111,8 @@ async function main($container) {
   } catch(err) {
     console.log(err);
   }
+
+  console.log('> init done')
 
   render(html`
     <h2>test case: ${testCase}</h2>

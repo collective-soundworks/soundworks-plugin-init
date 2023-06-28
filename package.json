@@ -16,8 +16,8 @@
   },
   "type": "module",
   "exports": {
-    "./client.js": "./src/client/plugin-platform-init.js",
-    "./server.js": "./src/server/plugin-platform-init.js"
+    "./client.js": "./src/PluginPlatformInitClient.js",
+    "./server.js": "./src/PluginPlatformInitServer.js"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,8 @@
   },
   "homepage": "https://github.com/collective-soundworks/soundworks-plugin-platform-init#readme",
   "dependencies": {
-    "is-plain-obj": "^3.0.0",
+    "@ircam/sc-utils": "^1.0.1",
+    "lit": "^2.7.5",
     "mobile-detect": "^1.3.7",
     "nosleep.js": "^0.11.0"
   },
