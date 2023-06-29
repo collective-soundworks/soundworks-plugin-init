@@ -8,7 +8,34 @@ import '../components/sw-plugin-platform-init.js';
 const definitions = {};
 
 const pluginFactory = function(Plugin) {
+  /**
+   * Client-side representation of the soundworks' platform init plugin.
+   */
   class PluginPlatformInitClient extends Plugin {
+    /**
+     * The constructor should never be called manually. The plugin will be
+     * instantiated by soundworks when registered in the `pluginManager`
+     *
+     * Available options:
+     * - `audioContext` {AudioContext} - instance audio context to be resumed
+     *   aliases: ['webaudio', 'audio-context', 'audioContext']
+     * - `devicemotion` {DeviceMotion} - `@ircam/devicemotion` module.
+     *   aliases: ['devicemotion', 'device-motion']
+     * - `micro` {Boolean} - create a microphone stream with all feature (i.e.
+     *   echoCancellation, noiseReduction, autoGainControl) set to false.
+     *   + aliases: ['mic', 'micro']
+     *   + todo: implement `deviceId`
+     * - `video` {Boolean} - create a camera stream
+     *   + todo: implement `deviceId`
+     * - `onCheck` {Function} - function executed when the plugin is started to check
+     *   for example if the feature is available. The provided function should return
+     *   a Promise.
+     * - `onActive` {Function} - function executed on the user gesture to init a feature.
+     *   The provided function should return a Promise.
+     *
+     * @example
+     * client.pluginManager.register('platform-init', platformInitPlugin, { audioContext });
+     */
     constructor(client, id, options) {
       super(client, id);
 
@@ -58,8 +85,11 @@ const pluginFactory = function(Plugin) {
       this._features = new Map();
     }
 
-    // this is executed when the plugin manager starts but the returned promise
-    // is resolved only on user gesture
+    /**
+     * This is executed when the plugin manager starts but the returned promise
+     * is resolved only on user gesture
+     * @private
+     */
     async start() {
       // this promise will be resolved of rejected only on user gesture
       const startPromise = new Promise((resolve, reject) => {
@@ -98,8 +128,11 @@ const pluginFactory = function(Plugin) {
     }
 
     /**
-     * Method to be executed by the application on the first user gesture.
-     * Calling this method several times will result in a no-op after the first call.
+     * Method to be executed by the application on the first user gesture. Calling
+     * this method several times will result in a no-op after the first call.
+     *
+     * By default, this method is automatically called by the soundworks launcher,
+     * you should not have to call it manually in most cases.
      *
      * @example
      * myView.addEventListener((e) => {
@@ -184,8 +217,9 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     }
 
     /**
-     * Returns the poayload associated to a given feature
-     * @param {String} featureId - Id of the feature as given when the plugin was registered
+     * Returns the poayload associated to a given feature.
+     * @param {String} featureId - Id of the feature as given when the plugin was
+     *  registered
      */
     get(featureId) {
       return this._features[featureId];
@@ -239,10 +273,10 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
  *
  * @param {String} id - Id of the feature
  * @param {Object} - Definition of the feature
- * @param {Function : Promise.resolve(true|false)} [obj.check=Promise.resolve(true)] -
- *  called *before* user gesture
- * @param {Function : Promise.resolve(true|false)} [obj.activate=Promise.resolve(true)] -
- *  called on user gesture
+ * @param {Function} [obj.check=Promise.resolve(true)] - called *before* user gesture
+ * @param {Function} [obj.activate=Promise.resolve(true)] - called on user gesture
+ *
+ * @private
  */
 pluginFactory.addFeatureDefinition = function(id, def) {
   // check unknow key in def allowed is [aliases, check, activate]
