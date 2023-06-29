@@ -4,7 +4,7 @@
 
 [`soundworks`](https://soundworks.dev) plugin to handle initialization of browser client features that require a user interaction such as resuming audio context, etc. 
 
-Tutorial: [https://soundworks.dev/tutorials/plugin-platform-init.html](https://soundworks.dev/tutorials/plugin-platform-init.html)
+**_Tutorial_**: [https://soundworks.dev/tutorials/plugin-platform-init.html](https://soundworks.dev/tutorials/plugin-platform-init.html)
 
 ## Table of Contents
 
