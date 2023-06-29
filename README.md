@@ -12,9 +12,14 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
-  * [Server registration](#server-registration)
+  * [Server](#server)
   * [Client registration](#client-registration)
 - [Available features](#available-features)
+- [API](#api)
+  * [Classes](#classes)
+  * [PluginPlatformInitClient](#pluginplatforminitclient)
+  * [PluginPlatformInitServer](#pluginplatforminitserver)
+- [Credits](#credits)
 - [License](#license)
 
 <!-- tocstop -->
@@ -39,7 +44,7 @@ const server = new Server(config);
 server.pluginManager.register('platform-init', platformInitPlugin);
 ```
 
-### Client registration
+### Client
 
 ```js
 // src/clients/**/index.js
