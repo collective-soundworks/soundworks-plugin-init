@@ -1,6 +1,6 @@
 # `@soundworks/plugin-platform-init`
 
-[![npm version](https://badge.fury.io/js/@soundworks%2Fplugin-platform-init.svg)](https://badge.fury.io/js/@soundworks%2Fplugin-scripting)
+[![npm version](https://badge.fury.io/js/@soundworks%2Fplugin-platform-init.svg)](https://badge.fury.io/js/@soundworks%2Fplugin-platform)
 
 [`soundworks`](https://soundworks.dev) plugin to handle initialization of browser client features that require a user interaction such as resuming audio context, etc. 
 
