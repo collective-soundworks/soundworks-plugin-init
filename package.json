@@ -31,13 +31,13 @@
   "homepage": "https://github.com/collective-soundworks/soundworks-plugin-platform-init#readme",
   "dependencies": {
     "@ircam/sc-utils": "^1.0.1",
-    "jsdoc-to-readme": "^1.1.0",
     "lit": "^2.7.5",
     "mobile-detect": "^1.3.7",
     "nosleep.js": "^0.11.0"
   },
   "devDependencies": {
     "@ircam/eslint-config": "^1.1.0",
+    "jsdoc-to-readme": "^1.1.0",
     "markdown-toc": "^1.2.0",
     "mocha": "^10.1.0",
     "puppeteer": "^19.2.0"
