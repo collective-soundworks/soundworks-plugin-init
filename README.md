@@ -200,6 +200,10 @@ Client-side representation of the soundworks' platform init plugin.
 
 <!-- apistop -->
 
+## Credits
+
+[https://soundworks.dev/credits.html](https://soundworks.dev/credits.html)
+
 ## License
 
 [BSD-3-Clause](./LICENSE)
