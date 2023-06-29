@@ -13,7 +13,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
   * [Server](#server)
-  * [Client registration](#client-registration)
+  * [Client](#client)
 - [Available features](#available-features)
 - [API](#api)
   * [Classes](#classes)
