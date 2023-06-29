@@ -1,4 +1,4 @@
-# `@soundworks/plugin-platform-init`
+# soundworks | plugin platform init
 
 [![npm version](https://badge.fury.io/js/@soundworks%2Fplugin-platform-init.svg)](https://badge.fury.io/js/@soundworks%2Fplugin-platform)
 
