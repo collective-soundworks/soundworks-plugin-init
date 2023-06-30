@@ -6,6 +6,11 @@
     "Benjamin Matuszewski"
   ],
   "license": "BSD-3-Clause",
+  "type": "module",
+  "exports": {
+    "./client.js": "./src/PluginPlatformInitClient.js",
+    "./server.js": "./src/PluginPlatformInitServer.js"
+  },
   "scripts": {
     "api": "jsdoc-to-readme --src src/*.js",
     "preversion": "npm run api && npm run toc && git commit -am 'docs: build' --allow-empty",
@@ -16,11 +21,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
-  "exports": {
-    "./client.js": "./src/PluginPlatformInitClient.js",
-    "./server.js": "./src/PluginPlatformInitServer.js"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/collective-soundworks/soundworks-plugin-platform-init"
@@ -28,7 +28,7 @@
   "bugs": {
     "url": "https://github.com/collective-soundworks/soundworks-plugin-platform-init/issues"
   },
-  "homepage": "https://github.com/collective-soundworks/soundworks-plugin-platform-init#readme",
+  "homepage": "https://soundworks.dev",
   "dependencies": {
     "@ircam/sc-utils": "^1.0.1",
     "lit": "^2.7.5",
