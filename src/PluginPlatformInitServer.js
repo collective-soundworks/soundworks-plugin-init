@@ -3,7 +3,7 @@ export default function(Plugin) {
   // to prepare eventual future features
 
   /**
-   * Client-side representation of the soundworks' platform init plugin.
+   * Server-side representation of the soundworks' platform init plugin.
    */
   class PluginPlatformInitServer extends Plugin {};
 
