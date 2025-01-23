@@ -3,8 +3,6 @@ import NoSleep from 'nosleep.js';
 import MobileDetect from 'mobile-detect';
 // default built-in definition
 import defaultDefinitions from './default-definitions.js';
-// import view so it can be used by the launcher
-import '../components/sw-plugin-platform-init.js';
 
 const definitions = {};
 
@@ -65,7 +63,7 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
 
     this._requiredFeatures.forEach(({ id }) => {
       if (!definitions[id]) {
-        throw new Error(`[soundworks:plugin:PlatformInit] Required undefined feature: "${id}"`);
+        throw new Error(`Cannot construct 'ClientPluginPlatformInit': Required undefined feature ("${id}")`);
       }
     });
 
@@ -115,12 +113,12 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
 
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const checkPromises = this._executeFeatures('check');
-    const checkResults = await this._resolveFeatures(checkPromises);
+    const checkPromises = this.#executeFeatures('check');
+    const checkResults = await this.#resolveFeatures(checkPromises);
     this.propagateStateChange({ infos, check: checkResults });
 
     if (checkResults.result === false) {
-      this._startPromiseReject(`[soundworks:plugin:PlatformInit] Feature not supported`);
+      this._startPromiseReject(new Error(`Cannot execute 'start' on ClientPluginPlatformInit: Feature not supported`));
       return;
     }
 
@@ -134,6 +132,8 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
    *
    * By default, this method is automatically called by the launcher, you should not
    * have to call it manually in most cases.
+   *
+   * {@see {@link https://developers.google.com/web/updates/2017/09/autoplay-policy-changes}}
    *
    * @example
    * myView.addEventListener('click', (e) => platformPlugin.onUserGesture(e));
@@ -159,8 +159,7 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
     // we need a user gesture:
     // cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
     if (event.type !== 'click') {
-      throw new Error(`[soundworks:plugin:PlatformInit] onUserGesture MUST be called on ""mouseup" or "touchend" events
-cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
+      throw new Error(`Cannot execute 'onUserGesture' on ClientPluginPlatformInit: The method must be called on a 'click' event (https://developers.google.com/web/updates/2017/09/autoplay-policy-changes)`);
     }
 
     //* -------------------------------------------------------------
@@ -199,15 +198,15 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     // note (24/09/2021) - Safari > 14 does not allow any async calls before
     // accessing `deviceMotion.requestPermission`, so all initialize should be
     // be called synchronously, and we must resolve the Promises after
-    // therefore `_resolveFeatures` is now a synchronous `_executeFeatures`
-    // and `_resolveFeatures` is called after.
-    const activatePromises = this._executeFeatures('activate');
-    const activateResults = await this._resolveFeatures(activatePromises);
+    // therefore `#resolveFeatures` is now a synchronous `#executeFeatures`
+    // and `#resolveFeatures` is called after.
+    const activatePromises = this.#executeFeatures('activate');
+    const activateResults = await this.#resolveFeatures(activatePromises);
 
     this.propagateStateChange({ activate: activateResults });
 
     if (activateResults.result === false) {
-      this._startPromiseReject(`[soundworks:plugin:PlatformInit] Activation failed`);
+      this._startPromiseReject(new Error(`Cannot execute 'start' on ClientPluginPlatformInit: Activation failed`));
       return;
     }
 
@@ -217,8 +216,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
 
   /**
    * Returns the payload associated to a given feature.
-   * @param {String} featureId - Id of the feature as given when the plugin was
-   *  registered
+   * @param {String} featureId - Id of the feature as given during plugin registration
    */
   get(featureId) {
     return this._features[featureId];
@@ -227,7 +225,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
   // Note (19/10/2022) @important - the split between this 2 methods looks silly,
   // but is important in order to make `devicemotion.requestPermission` work on iOS
   // so DO NOT change that!!!
-  _executeFeatures(step) {
+  #executeFeatures(step) {
     const promises = {};
 
     if (step === 'check') {
@@ -248,7 +246,7 @@ cf. https://developers.google.com/web/updates/2017/09/autoplay-policy-changes`);
     return promises;
   }
 
-  async _resolveFeatures(promises) {
+  async #resolveFeatures(promises) {
     const result = {
       details: {},
       result: true,
@@ -278,18 +276,18 @@ export function addFeatureDefinition(id, def) {
   // check unknown key in def allowed is [aliases, check, activate]
   for (let key in def) {
     if (!['aliases', 'check', 'activate'].includes(key)) {
-      throw new Error(`[soundworks:plugin:PlatformInit] Invalid key "${key}" in feature definition ${id}`);
+      throw new TypeError(`Cannot execute 'addFeatureDefinition': Invalid key "${key}" in feature definition ${id}`);
     }
   }
   // check that we have at least 'check' or 'activate' in keys'
   if (!('check' in def || 'activate' in def)) {
-    throw new Error(`[soundworks:plugin:PlatformInit] Invalid definition "${id}" should contain at least a "check" or an "activate" function`);
+    throw new TypeError(`Cannot execute 'addFeatureDefinition': Invalid definition "${id}" should contain at least a "check" or an "activate" function`);
   }
 
   if (definitions[id] === undefined) {
     definitions[id] = def;
   } else {
-    throw new Error(`[soundworks:plugin:PlatformInit] Definition "${id}" already exists`);
+    throw new TypeError(`Cannot execute 'addFeatureDefinition': Definition "${id}" already exists`);
   }
 
   // register same definition under different names, e.g. 'web-audio', 'webaudio', 'webAudio', etc...
@@ -298,7 +296,7 @@ export function addFeatureDefinition(id, def) {
       if (definitions[alias] === undefined) {
         definitions[alias] = def;
       } else {
-        throw new Error(`[soundworks:plugin:PlatformInit] Definition "${id}" already exists`);
+        throw new TypeError(`Cannot execute 'addFeatureDefinition': Definition "${id}" already exists`);
       }
     });
   }
