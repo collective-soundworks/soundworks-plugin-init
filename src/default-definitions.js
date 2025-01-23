@@ -1,6 +1,7 @@
 import { isPlainObject } from '@ircam/sc-utils';
+
 // keys:
-// - alias, optionnnal aliased id
+// - alias, optional aliased id
 // - `check`: executed on start, before userGesture
 // - `activate`: executed on userGesture
 export default {
@@ -15,7 +16,8 @@ export default {
       return Promise.resolve(!!audioContext);
     },
     activate: async function(plugin, featureId, audioContext) {
-      // @note - maybe not needed anymore, as even Safari implements that
+      // Just implement a dummy resume for very old devices. Probably not needed
+      // anymore, as even Safari implements that, but doesn't hurt
       if (!('resume' in audioContext)) {
         audioContext.resume = () => {
           return Promise.resolve();
@@ -39,9 +41,8 @@ export default {
           o.stop(audioContext.currentTime + 0.01);
         }
 
-        // in iphones, sampleRate has been observed to be set at 16000Hz
-        // sometimes causing clicks and noisy audio, as no exhaustive testing
-        // has been made... just assume < 40000 is a bad value.
+        // in iPhones, sampleRate has been observed to be set at 16000Hz sometimes,
+        // causing clicks and noise. Let's just assume < 40000 is a bad value.
         if (plugin.state.infos.os === 'ios') {
           if (audioContext.sampleRate < 40000) {
             window.location.reload(true);
@@ -54,7 +55,6 @@ export default {
       return Promise.resolve(true);
     },
   },
-  // use @ircam/devicemotion
   '@ircam/devicemotion': {
     aliases: ['devicemotion', 'device-motion'],
     check: async function(plugin, featureId, _devicemotion) {
@@ -84,7 +84,7 @@ export default {
     },
     activate: async function(plugin, featureId, options) {
       try {
-        // we don't any traitement by default
+        // remove all pre-processing by default
         let config = {
           echoCancellation: false,
           noiseReduction: false,
@@ -100,6 +100,7 @@ export default {
 
         return true;
       } catch (err) {
+        console.log(err);
         return false;
       }
     },
@@ -126,6 +127,7 @@ export default {
 
         return true;
       } catch (err) {
+        console.log(err);
         return false;
       }
     },
