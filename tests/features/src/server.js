@@ -1,10 +1,9 @@
 import '@soundworks/helpers/polyfills.js';
+import '@soundworks/helpers/catch-unhandled-errors.js';
 import { Server } from '@soundworks/core/server.js';
+import { loadConfig, configureHttpRouter } from '@soundworks/helpers/server.js';
 
-import { loadConfig } from '../utils/load-config.js';
-import '../utils/catch-unhandled-errors.js';
-
-import platformInitPlugin from '../../../../src/PluginPlatformInitServer.js';
+import ServerPluginPlatformInit from '../../../src/ServerPluginPlatformInit.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -13,8 +12,7 @@ import platformInitPlugin from '../../../../src/PluginPlatformInitServer.js';
 
 const config = loadConfig(process.env.ENV, import.meta.url);
 
-// make it silent of
-if (process.send !== undefined) {
+if (process.env.TEST !== undefined) {
   config.env.verbose = false;
 } else {
   console.log(`
@@ -26,12 +24,9 @@ if (process.send !== undefined) {
 }
 
 const server = new Server(config);
-// configure the server for usage within this application template
-server.useDefaultApplicationTemplate();
+configureHttpRouter(server);
 
-/**
- * Register plugins
- */
-server.pluginManager.register('platform-init', platformInitPlugin);
+// Register plugins and create shared state classes
+server.pluginManager.register('platform-init', ServerPluginPlatformInit);
 
 await server.start();

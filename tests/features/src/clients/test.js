@@ -1,80 +1,66 @@
 import '@soundworks/helpers/polyfills.js';
 import { Client } from '@soundworks/core/client.js';
-import launcher from '@soundworks/helpers/launcher.js';
-import { html, render, nothing } from 'lit/html.js';
+import { loadConfig, launcher } from '@soundworks/helpers/browser.js';
+import { html, render, nothing } from 'lit';
 import devicemotion from '@ircam/devicemotion';
 
-import createLayout from './views/layout.js';
-
-import platformInitPlugin from '../../../../../src/PluginPlatformInitClient.js';
+import ClientPluginPlatformInit from '../../../../src/ClientPluginPlatformInit.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
 // - Issue Tracker:         https://github.com/collective-soundworks/soundworks/issues
 // - Wizard & Tools:        `npx soundworks`
 
-/**
- * Grab the configuration object written by the server in the `index.html`
- */
-const config = window.SOUNDWORKS_CONFIG;
-
-// If multiple clients are emulated you want to share the same context
-const audioContext = new AudioContext();
-
-const searchParams = new URLSearchParams(window.location.search);
-const testCase = searchParams.get('case') || 'webaudio';
-
-console.log('> configure the view you want to test with:');
-console.log('> http://127.0.0.1:8000?&case=webaudio');
-
 async function main($container) {
-  /**
-   * Create the soundworks client
-   */
+  const audioContext = new AudioContext();
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const testCase = searchParams.get('case') || 'webaudio';
+
+  console.log('> configure the view you want to test with:');
+  console.log('> http://127.0.0.1:8000?&case=webaudio');
+
+  const config = loadConfig();
   const client = new Client(config);
 
   let onCheckCalled = false;
   let onActivateCalled = false;
 
-  /**
-   * Register some soundworks plugins, you will need to install the plugins
-   * before hand (run `npx soundworks` for help)
-   */
   // -------------------------------------------------------------------
   // register features in plugin
   // -------------------------------------------------------------------
   switch(testCase) {
     case 'webaudio': {
-      client.pluginManager.register('platform-init', platformInitPlugin, {
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
         webaudio: audioContext,
       });
       break;
     }
     case 'webaudio-alias': {
-      client.pluginManager.register('platform-init', platformInitPlugin, { audioContext });
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, { audioContext });
       break;
     }
     // @ircam/devicemotion
     case 'devicemotion': {
-      client.pluginManager.register('platform-init', platformInitPlugin, { devicemotion });
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, { devicemotion });
       break;
     }
 
     case 'microphone': {
-      client.pluginManager.register('platform-init', platformInitPlugin, {
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
         audioContext, // needed for the test
         microphone: true,
       });
       break;
     }
     case 'camera': {
-      client.pluginManager.register('platform-init', platformInitPlugin, {
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
         camera: true,
       });
       break;
     }
     case 'userDefinedPlaceholders': {
-      client.pluginManager.register('platform-init', platformInitPlugin, {
+      client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
         onCheck: (plugin) => {
           onCheckCalled = true;
           return Promise.resolve();
@@ -92,11 +78,13 @@ async function main($container) {
   client.pluginManager.onStateChange(plugins => {
     if (plugins['platform-init'].status === 'inited') {
       render(html`
-        <h2>test case: ${testCase}</h2>
-        <button
-          id="launch-init"
-          @click="${e => plugins['platform-init'].onUserGesture(e)}"
-        >click to launch</button>
+        <div class="simple-layout">
+          <h2>test case: ${testCase}</h2>
+          <button
+            id="launch-init"
+            @click="${e => plugins['platform-init'].onUserGesture(e)}"
+          >click to launch</button>
+        </div>
       `, $container);
     }
   });
@@ -115,15 +103,17 @@ async function main($container) {
   console.log('> init done')
 
   render(html`
-    <h2>test case: ${testCase}</h2>
-    <p>open console to see log results</p>
-    <a href="/?case=webaudio">webaudio</a>
-    <a href="/?case=webaudio-alias">webaudio-alias</a>
-    <a href="/?case=devicemotion">devicemotion</a>
-    <a href="/?case=microphone">microphone</a>
-    <a href="/?case=camera">camera</a>
-    <a href="/?case=userDefinedPlaceholders">user defined "onCheck" and "onActivate" placeholders</a>
-    ${testCase === 'camera' ? html`<br /><video autoplay="true"></video>` : nothing}
+    <div class="simple-layout">
+      <h2>test case: ${testCase}</h2>
+      <p>open console to see log results</p>
+      <p><a href="/?case=webaudio">webaudio</a></p>
+      <p><a href="/?case=webaudio-alias">webaudio-alias</a></p>
+      <p><a href="/?case=devicemotion">devicemotion</a></p>
+      <p><a href="/?case=microphone">microphone</a></p>
+      <p><a href="/?case=camera">camera</a></p>
+      <p><a href="/?case=userDefinedPlaceholders">user defined "onCheck" and "onActivate" placeholders</a></p>
+      ${testCase === 'camera' ? html`<br /><video autoplay="true"></video>` : nothing}
+    </div>
   `, $container);
 
   switch (testCase) {
@@ -189,8 +179,7 @@ async function main($container) {
   }
 }
 
-// The launcher enables instanciation of multiple clients in the same page to
-// facilitate development and testing.
+// The launcher allows to launch multiple clients in the same browser window
 // e.g. `http://127.0.0.1:8000?emulate=10` to run 10 clients side-by-side
 launcher.execute(main, {
   numClients: parseInt(new URLSearchParams(window.location.search).get('emulate')) || 1,

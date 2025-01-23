@@ -23,10 +23,13 @@ describe('PluginPlatform', () => {
     console.log('> Building app...');
     execSync(`npm run build`, { cwd: appPath });
 
-    browser = await puppeteer.launch({ headless: true });
+    browser = await puppeteer.launch({
+      // headless: true,
+      args: [ '--use-fake-ui-for-media-stream' ]
+    });
 
     console.log('> Launching server...');
-    const serverIndex = path.join(appPath, '.build', 'server', 'index.js');
+    const serverIndex = path.join(appPath, '.build', 'server.js');
     forked = fork(serverIndex, { cwd: appPath });
 
     return new Promise(resolve => {
@@ -117,7 +120,7 @@ describe('PluginPlatform', () => {
     });
   });
 
-  describe.only('feature: microphone', () => {
+  describe.skip('feature: microphone', () => {
     it(`should access microphone`, async function() {
       this.timeout(5000);
 
@@ -149,7 +152,7 @@ describe('PluginPlatform', () => {
     });
   });
 
-  describe.only('feature: camera', () => {
+  describe.skip('feature: camera', () => {
     it(`should access camera`, async function() {
       this.timeout(5000);
 

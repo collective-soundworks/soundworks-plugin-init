@@ -1,0 +1,6 @@
+name: features
+author: ""
+clients:
+  test:
+    runtime: browser
+    default: true
