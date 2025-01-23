@@ -63,7 +63,7 @@ console.log(audioContext.state === 'running');
 
 ## Available features
 
-By default, the `@soundworks/plugin-platform-init` provide a way to resume audio context (as shown above) but also to access microphone, camera streams, and motion sensors throught the [`@ircam/devicemotion`](https://www.npmjs.com/package/@ircam/devicemotion) package.
+By default, the `@soundworks/plugin-platform-init` provide a way to resume audio context (as shown above) but also to access microphone, camera streams, and motion sensors through the [`@ircam/devicemotion`](https://www.npmjs.com/package/@ircam/devicemotion) package.
 
 ```sh
 npm install --save @ircam/devicemotion
@@ -72,12 +72,12 @@ npm install --save @ircam/devicemotion
 ```js
 // src/clients/**/index.js
 import { Client } from '@soundworks/core/client.js';
-import pluginPlatformInit from '@soundworks/plugin-platform-init/client.js';
+import ClientPluginPlatformInit from '@soundworks/plugin-platform-init/client.js';
 import devicemotion from '@ircam/devicemotion';
 
 const client = new Client(config);
 
-client.pluginManager.register('platform-init', pluginPlatformInit, {
+client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
   microphone: true,
   camera: true,
   devicemotion,
@@ -94,14 +94,14 @@ devicemotion.addEventListener(e => console.log(e));
 
 _Note that these additional features require a https connection._
 
-You can also add any arbitraty logic by passing a function to the `onCheck` and
+You can also add any arbitrary logic by passing a function to the `onCheck` and
 `onActivate` options:
 
 ```js
 let onCheckCalled = false;
 let onActivateCalled = false;
 
-client.pluginManager.register('platform-init', pluginPlatformInit, {
+client.pluginManager.register('platform-init', ClientPluginPlatformInit, {
   onCheck: (plugin) => {
     onCheckCalled = true;
     return Promise.resolve();
