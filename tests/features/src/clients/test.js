@@ -4,7 +4,7 @@ import { loadConfig, launcher } from '@soundworks/helpers/browser.js';
 import { html, render, nothing } from 'lit';
 import devicemotion from '@ircam/devicemotion';
 
-import ClientPluginPlatformInit from '../../../../src/ClientPluginPlatformInit.js';
+import ClientPluginPlatformInit from '../../../../src/ClientPluginPlatformInit.browser.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api

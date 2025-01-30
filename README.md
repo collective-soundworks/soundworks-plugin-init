@@ -161,14 +161,13 @@ client.pluginManager.register('platform-init', platformInitPlugin, { audioContex
 
 ### onUserGesture
 
-Method to be called by the application on the first user gesture.
+Method to be called by the application on the first user gesture, i.e. a 'click' event
+(cf. [https://developers.google.com/web/updates/2017/09/autoplay-policy-changes][6])
 
 Calling this method several times will result in a no-op after the first call.
 
-By default, this method is automatically called by the launcher, you should not
-have to call it manually in most cases.
-
-{@see [https://developers.google.com/web/updates/2017/09/autoplay-policy-changes][6]}
+By default, this method is automatically called by the launcher. Therefore, in
+most cases, you should not have to call it manually.
 
 #### Parameters
 

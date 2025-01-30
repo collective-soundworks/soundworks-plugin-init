@@ -33,6 +33,8 @@ const definitions = {};
  * client.pluginManager.register('platform-init', platformInitPlugin, { audioContext });
  */
 export default class ClientPluginPlatformInit extends ClientPlugin {
+  #requiredFeatures = new Set();
+
   /** @hideconstructor */
   constructor(client, id, options) {
     super(client, id);
@@ -43,7 +45,7 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
     };
 
     this.options = Object.assign(defaults, options);
-    this._requiredFeatures = new Set();
+
     // check options and required features
     for (let id in this.options) {
       // handle special onCheck and onActivate cases
@@ -58,10 +60,10 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
         args = [args];
       }
 
-      this._requiredFeatures.add({ id, args });
+      this.#requiredFeatures.add({ id, args });
     }
 
-    this._requiredFeatures.forEach(({ id }) => {
+    this.#requiredFeatures.forEach(({ id }) => {
       if (!definitions[id]) {
         throw new Error(`Cannot construct 'ClientPluginPlatformInit': Required undefined feature ("${id}")`);
       }
@@ -126,14 +128,13 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
   }
 
   /**
-   * Method to be called by the application on the first user gesture.
+   * Method to be called by the application on the first user gesture, i.e. a 'click' event
+   * (cf. {@link https://developers.google.com/web/updates/2017/09/autoplay-policy-changes})
    *
    * Calling this method several times will result in a no-op after the first call.
    *
-   * By default, this method is automatically called by the launcher, you should not
-   * have to call it manually in most cases.
-   *
-   * {@see {@link https://developers.google.com/web/updates/2017/09/autoplay-policy-changes}}
+   * By default, this method is automatically called by the launcher. Therefore, in
+   * most cases, you should not have to call it manually.
    *
    * @example
    * myView.addEventListener('click', (e) => platformPlugin.onUserGesture(e));
@@ -234,7 +235,7 @@ export default class ClientPluginPlatformInit extends ClientPlugin {
       promises.onActivate = this.options.onActivate(this);
     }
 
-    for (const { id, args } of this._requiredFeatures) {
+    for (const { id, args } of this.#requiredFeatures) {
       if (definitions[id][step]) {
         const featureResultPromise = definitions[id][step](this, id, ...args);
         promises[id] = featureResultPromise;
