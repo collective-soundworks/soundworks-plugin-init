@@ -12,13 +12,10 @@
 
 - [Installation](#installation)
 - [Usage](#usage)
-  * [Server](#server)
-  * [Client](#client)
 - [Available features](#available-features)
 - [API](#api)
-  * [Classes](#classes)
-  * [PluginPlatformInitClient](#pluginplatforminitclient)
-  * [PluginPlatformInitServer](#pluginplatforminitserver)
+- [ClientPluginPlatformInit](#clientpluginplatforminit)
+- [ServerPluginPlatformInit](#serverpluginplatforminit)
 - [Credits](#credits)
 - [License](#license)
 
