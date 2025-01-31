@@ -24,8 +24,9 @@ describe('PluginPlatform', () => {
     execSync(`npm run build`, { cwd: appPath });
 
     browser = await puppeteer.launch({
-      // headless: true,
-      args: [ '--use-fake-ui-for-media-stream' ]
+      headless: true,
+      ignoreDefaultArgs: ["--disable-extensions"],
+      args: ["--no-sandbox", '--use-fake-ui-for-media-stream'],
     });
 
     console.log('> Launching server...');
